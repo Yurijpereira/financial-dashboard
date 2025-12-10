@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Os componentes são auto-importados pelo Nuxt 3
 </script>
 
 <template>
