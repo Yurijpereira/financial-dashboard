@@ -1,0 +1,23 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  background-color: $color-bg-page;
+  color: $color-text-main;
+}
+
+.card-base {
+  @apply bg-white rounded-xl shadow-md p-4;
+}
