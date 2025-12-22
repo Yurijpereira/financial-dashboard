@@ -13,9 +13,9 @@ export default defineEventHandler(() => {
       { date: '2025-12-05', value: 9800 },
     ],
     topCustomers: [
-      { id: 'c_1', name: 'Avanti LTDA', revenue: 21500, orders: 12 },
-      { id: 'c_2', name: 'GLTextil', revenue: 17200, orders: 9 },
-      { id: 'c_3', name: 'Northwind', revenue: 14800, orders: 8 },
+      { id: 'c_1', name: 'Empresa', revenue: 21500, orders: 12 },
+      { id: 'c_2', name: 'Inventimentos LTDA.', revenue: 17200, orders: 9 },
+      { id: 'c_3', name: 'Fintech Empresarial', revenue: 14800, orders: 8 },
     ],
   }
 })
