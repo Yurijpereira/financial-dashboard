@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import Button from 'primevue/button'
+import { useQueryClient } from '@tanstack/vue-query'
+
+const queryClient = useQueryClient()
+
+async function refreshDashboardData(): Promise<void> {
+  await queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+}
 </script>
 
 <template>
@@ -18,6 +25,7 @@ import Button from 'primevue/button'
         icon="pi pi-refresh"
         class="p-button-text"
         label="Atualizar dados"
+        @click="refreshDashboardData"
       />
       <Button
         icon="pi pi-user"
