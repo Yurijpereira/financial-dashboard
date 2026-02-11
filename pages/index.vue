@@ -2,6 +2,7 @@
 import Card from 'primevue/card'
 
 import KpiCard from '@/components/dashboard/KpiCard.vue'
+import SalesChart from '@/components/dashboard/SalesChart.vue'
 import { useFinancialSummaryQuery } from '@/composables/useFinancialSummaryQuery'
 
 const { data, isPending, isError } = useFinancialSummaryQuery()
@@ -74,16 +75,10 @@ function formatInteger(value: number): string {
           </template>
 
           <template #content>
-            <ul class="mt-3 text-sm text-gray-700 space-y-1">
-              <li
-                v-for="salePoint in data.salesSeries"
-                :key="salePoint.date"
-                class="flex items-center justify-between"
-              >
-                <span class="text-gray-500">{{ salePoint.date }}</span>
-                <span class="font-medium">{{ formatCurrencyBRL(salePoint.value) }}</span>
-              </li>
-            </ul>
+            <SalesChart 
+              :data="data.salesSeries" 
+              :loading="isPending"
+            />
           </template>
         </Card>
 
