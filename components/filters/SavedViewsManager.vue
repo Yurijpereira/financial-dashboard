@@ -94,9 +94,11 @@ function handleDeleteView(id: string): void {
 }
 
 /**
- * Formata data para exibição
+ * Formata data para exibição (seguro para SSR)
  */
 function formatDate(isoDate: string): string {
+  if (!process.client) return ''
+  
   const date = new Date(isoDate)
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',

@@ -1,8 +1,6 @@
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import type { DashboardFilters, DateRange, PeriodPreset } from '@/types/filters'
 import { getDateRangeFromPreset, isValidDateRange } from '@/utils/dateHelpers'
-
-const STORAGE_KEY = 'financial-dashboard-filters'
 
 /**
  * Cria os filtros padrão
@@ -18,43 +16,6 @@ function createDefaultFilters(): DashboardFilters {
   }
 }
 
-/**
- * Carrega filtros do localStorage
- */
-function loadFiltersFromStorage(): DashboardFilters | null {
-  if (typeof window === 'undefined') return null
-
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) return null
-
-    const parsed = JSON.parse(stored) as DashboardFilters
-
-    // Valida o range de datas
-    if (!isValidDateRange(parsed.dateRange)) {
-      return null
-    }
-
-    return parsed
-  } catch (error) {
-    console.warn('Failed to load filters from localStorage:', error)
-    return null
-  }
-}
-
-/**
- * Salva filtros no localStorage
- */
-function saveFiltersToStorage(filters: DashboardFilters): void {
-  if (typeof window === 'undefined') return
-
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
-  } catch (error) {
-    console.warn('Failed to save filters to localStorage:', error)
-  }
-}
-
 // Estado global dos filtros
 const filters = ref<DashboardFilters>(createDefaultFilters())
 let isInitialized = false
@@ -65,21 +26,18 @@ let isInitialized = false
  */
 export function useFilters() {
   // Inicializa os filtros do localStorage apenas uma vez (client-side)
-  if (!isInitialized && typeof window !== 'undefined') {
-    const stored = loadFiltersFromStorage()
-    if (stored) {
-      filters.value = stored
-    }
+  if (!isInitialized && process.client) {
+    // Importação dinâmica do código client-only
+    import('./useFilters.client').then(({ loadFiltersFromStorage, setupFiltersStorageWatcher }) => {
+      const stored = loadFiltersFromStorage()
+      if (stored && isValidDateRange(stored.dateRange)) {
+        filters.value = stored
+      }
+      
+      // Setup do watcher para localStorage
+      setupFiltersStorageWatcher(() => filters.value)
+    })
     isInitialized = true
-
-    // Salva automaticamente quando os filtros mudam
-    watch(
-      filters,
-      (newFilters) => {
-        saveFiltersToStorage(newFilters)
-      },
-      { deep: true }
-    )
   }
 
   /**

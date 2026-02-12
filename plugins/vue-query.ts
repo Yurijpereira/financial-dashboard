@@ -18,11 +18,13 @@ export default defineNuxtPlugin((nuxt) => {
   const queryClient = new QueryClient({
     defaultOptions: { 
       queries: { 
-        staleTime: 5000,
+        staleTime: 1000 * 60 * 5, // 5 minutos - aumentado para reduzir refetches
+        gcTime: 1000 * 60 * 10, // 10 minutos (anteriormente cacheTime)
         refetchOnWindowFocus: false, // Evita refetch ao focar janela
         refetchOnMount: false, // Evita refetch ao montar componente
         refetchOnReconnect: false, // Evita refetch ao reconectar
         retry: 1, // Reduz tentativas de retry
+        retryDelay: 1000, // Delay entre retries
       } 
     },
   })
@@ -37,9 +39,11 @@ export default defineNuxtPlugin((nuxt) => {
   }
 
   if (process.client) {
-    // Hydrate após o app estar montado
-    if (vueQueryState.value) {
-      hydrate(queryClient, vueQueryState.value)
-    }
+    // Hydrate apenas se houver estado e apenas uma vez
+    nuxt.hooks.hook('app:mounted', () => {
+      if (vueQueryState.value) {
+        hydrate(queryClient, vueQueryState.value)
+      }
+    })
   }
 })

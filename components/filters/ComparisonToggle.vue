@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useFilters } from '@/composables/useFilters'
-import { getDaysDifference, formatToDisplayDate, getDaysAgo } from '@/utils/dateHelpers'
+import { getDaysDifference, formatToDisplayDate } from '@/utils/dateHelpers'
 
 const { filters, toggleCompareWithPrevious } = useFilters()
 
@@ -12,14 +12,26 @@ const previousPeriod = computed(() => {
   const currentRange = filters.value.dateRange
   const daysDiff = getDaysDifference(currentRange.start, currentRange.end)
 
-  // Calcula o período anterior com a mesma duração
-  const previousEndDate = new Date(currentRange.start + 'T00:00:00')
+  // Calcula o período anterior com a mesma duração usando string manipulation
+  const [year, month, day] = currentRange.start.split('-').map(Number)
+  const startDate = new Date(year!, month! - 1, day!)
+  
+  // Subtrai 1 dia para obter o fim do período anterior
+  const previousEndDate = new Date(startDate)
   previousEndDate.setDate(previousEndDate.getDate() - 1)
-  const previousEnd = previousEndDate.toISOString().split('T')[0]
-
+  
+  // Subtrai a duração do período para obter o início
   const previousStartDate = new Date(previousEndDate)
   previousStartDate.setDate(previousStartDate.getDate() - daysDiff)
-  const previousStart = previousStartDate.toISOString().split('T')[0]
+  
+  // Formata para ISO
+  const previousEnd = previousEndDate.getFullYear() + '-' + 
+    String(previousEndDate.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(previousEndDate.getDate()).padStart(2, '0')
+  
+  const previousStart = previousStartDate.getFullYear() + '-' + 
+    String(previousStartDate.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(previousStartDate.getDate()).padStart(2, '0')
 
   return {
     start: previousStart,

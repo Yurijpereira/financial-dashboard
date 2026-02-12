@@ -1,43 +1,11 @@
 import { ref, computed } from 'vue'
 import type { SavedView, SavedViewInput, DashboardFilters } from '@/types/filters'
 
-const STORAGE_KEY = 'financial-dashboard-saved-views'
-
 /**
  * Gera um ID único para uma view
  */
 function generateId(): string {
   return `view_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-}
-
-/**
- * Carrega saved views do localStorage
- */
-function loadViewsFromStorage(): SavedView[] {
-  if (typeof window === 'undefined') return []
-
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) return []
-
-    return JSON.parse(stored) as SavedView[]
-  } catch (error) {
-    console.warn('Failed to load saved views from localStorage:', error)
-    return []
-  }
-}
-
-/**
- * Salva views no localStorage
- */
-function saveViewsToStorage(views: SavedView[]): void {
-  if (typeof window === 'undefined') return
-
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(views))
-  } catch (error) {
-    console.warn('Failed to save views to localStorage:', error)
-  }
 }
 
 // Estado global das views salvas
@@ -49,9 +17,22 @@ let isInitialized = false
  */
 export function useSavedViews() {
   // Inicializa as views do localStorage apenas uma vez (client-side)
-  if (!isInitialized && typeof window !== 'undefined') {
-    savedViews.value = loadViewsFromStorage()
+  if (!isInitialized && process.client) {
+    // Importação dinâmica do código client-only
+    import('./useSavedViews.client').then(({ loadViewsFromStorage, saveViewsToStorage }) => {
+      savedViews.value = loadViewsFromStorage()
+      
+      // Exporta função para salvar (usada pelos métodos abaixo)
+      ;(globalThis as any).__saveViewsToStorage = saveViewsToStorage
+    })
     isInitialized = true
+  }
+  
+  // Helper para salvar (funciona tanto no server quanto no client)
+  const persistViews = (views: SavedView[]) => {
+    if (process.client && (globalThis as any).__saveViewsToStorage) {
+      ;(globalThis as any).__saveViewsToStorage(views)
+    }
   }
 
   /**
@@ -69,7 +50,7 @@ export function useSavedViews() {
     }
 
     savedViews.value.push(newView)
-    saveViewsToStorage(savedViews.value)
+    persistViews(savedViews.value)
 
     return newView
   }
@@ -94,7 +75,7 @@ export function useSavedViews() {
 
     savedViews.value[index]!.updatedAt = new Date().toISOString()
 
-    saveViewsToStorage(savedViews.value)
+    persistViews(savedViews.value)
     return true
   }
 
@@ -106,7 +87,7 @@ export function useSavedViews() {
     if (index === -1) return false
 
     savedViews.value.splice(index, 1)
-    saveViewsToStorage(savedViews.value)
+    persistViews(savedViews.value)
     return true
   }
 

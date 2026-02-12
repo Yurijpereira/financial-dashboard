@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
 interface ConversionMetric {
   label: string
   value: number
@@ -13,6 +15,12 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
+})
+
+const isClient = ref(false)
+
+onMounted(() => {
+  isClient.value = true
 })
 
 function calculatePercentage(value: number, total: number): number {
@@ -37,6 +45,12 @@ function getTrendColor(trend: number | null): string {
 function getTrendIcon(trend: number | null): string {
   if (trend === null) return ''
   return trend >= 0 ? '↑' : '↓'
+}
+
+// Função segura para formatação de números
+function formatNumber(value: number): string {
+  if (!isClient.value) return String(value)
+  return value.toLocaleString('pt-BR')
 }
 </script>
 
@@ -95,7 +109,7 @@ function getTrendIcon(trend: number | null): string {
 
           <!-- Count -->
           <div class="text-xs text-gray-500">
-            {{ metric.value.toLocaleString('pt-BR') }} de {{ metric.total.toLocaleString('pt-BR') }}
+            {{ formatNumber(metric.value) }} de {{ formatNumber(metric.total) }}
           </div>
         </div>
       </div>

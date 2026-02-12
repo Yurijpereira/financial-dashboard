@@ -23,6 +23,7 @@ const { loadFiltersFromUrl, watchFiltersForUrlSync } = useFiltersUrlSync()
 
 // Estado de expansão das seções
 const showAdvancedFilters = ref(false)
+const isClient = ref(false)
 
 // Opções mockadas (em produção viriam da API)
 const customerOptions: FilterOption[] = [
@@ -76,10 +77,17 @@ function handleReset(): void {
   resetFilters()
 }
 
-// Carrega filtros da URL no mount e sincroniza mudanças
+// Carrega filtros da URL no mount e sincroniza mudanças (apenas no cliente)
 onMounted(() => {
-  loadFiltersFromUrl()
-  watchFiltersForUrlSync(() => filters.value)
+  isClient.value = true
+  
+  if (process.client) {
+    // Carrega filtros da URL
+    loadFiltersFromUrl()
+    
+    // Inicia sincronização com a URL (com debounce para evitar loops)
+    watchFiltersForUrlSync(() => filters.value, { debounce: 500 })
+  }
 })
 </script>
 

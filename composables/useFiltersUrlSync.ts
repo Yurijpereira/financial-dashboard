@@ -93,13 +93,22 @@ export function useFiltersUrlSync() {
     }
   }
 
-  const router = useRouter()
-  const route = useRoute()
+  // Declarações no topo, mas só serão usadas no cliente
+  let router: ReturnType<typeof useRouter> | null = null
+  let route: ReturnType<typeof useRoute> | null = null
+  
+  // Inicializa router/route apenas no cliente
+  if (process.client) {
+    router = useRouter()
+    route = useRoute()
+  }
 
   /**
    * Atualiza a URL com os filtros atuais (sem navegar)
    */
   function syncFiltersToUrl(filters: DashboardFilters, replace = true): void {
+    if (!router) return
+    
     const query = serializeFiltersToQuery(filters)
 
     const method = replace ? router.replace : router.push
@@ -118,6 +127,8 @@ export function useFiltersUrlSync() {
    * Carrega filtros da URL atual e aplica ao estado global
    */
   function loadFiltersFromUrl(): Partial<DashboardFilters> | null {
+    if (!route) return null
+    
     const urlFilters = deserializeQueryToFilters(route.query)
     if (urlFilters && Object.keys(urlFilters).length > 0) {
       // Aplica os filtros da URL ao estado global

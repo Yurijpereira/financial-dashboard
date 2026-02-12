@@ -37,6 +37,18 @@ export default defineNuxtConfig({
     transpile: ['primevue', 'echarts'],
   },
 
+  // Otimização de imports client/server
+  optimization: {
+    treeShake: {
+      composables: {
+        client: {
+          useFilters: ['loadFiltersFromStorage', 'saveFiltersToStorage', 'setupFiltersStorageWatcher'],
+          useSavedViews: ['loadViewsFromStorage', 'saveViewsToStorage'],
+        }
+      }
+    }
+  },
+
   modules: ['@pinia/nuxt'],
 
   typescript: {
@@ -45,4 +57,22 @@ export default defineNuxtConfig({
   },
 
   ssr: true,
+
+  // Configurações para melhorar hidratação
+  experimental: {
+    payloadExtraction: false,
+  },
+
+  app: {
+    head: {
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      ],
+    },
+  },
+
+  // Desabilita inlining de estilos para evitar mismatch
+  features: {
+    inlineStyles: false,
+  },
 })

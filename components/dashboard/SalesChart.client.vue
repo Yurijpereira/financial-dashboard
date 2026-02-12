@@ -18,9 +18,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const chartContainer = ref<HTMLDivElement | null>(null)
+const isClient = ref(false)
 let chartInstance: EChartsType | null = null
 
 function formatCurrency(value: number): string {
+  if (!isClient.value) return `R$ ${value}`
+  
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -29,6 +32,8 @@ function formatCurrency(value: number): string {
 }
 
 function formatDate(dateString: string): string {
+  if (!isClient.value) return dateString
+  
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -173,13 +178,18 @@ function handleResize() {
 }
 
 onMounted(async () => {
+  isClient.value = true
   await nextTick()
   initChart()
-  window.addEventListener('resize', handleResize)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', handleResize)
+  }
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize)
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', handleResize)
+  }
   chartInstance?.dispose()
 })
 

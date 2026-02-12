@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import Card from 'primevue/card'
 
 import KpiCard from '@/components/dashboard/KpiCard.vue'
@@ -10,8 +11,15 @@ import MonthlyComparisonChart from '@/components/dashboard/MonthlyComparisonChar
 import { useFinancialSummaryQuery } from '@/composables/useFinancialSummaryQuery'
 
 const { data, pending, error } = useFinancialSummaryQuery()
+const isClient = ref(false)
+
+onMounted(() => {
+  isClient.value = true
+})
 
 function formatCurrencyBRL(value: number): string {
+  if (!isClient.value) return `R$ ${value}`
+  
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -20,6 +28,8 @@ function formatCurrencyBRL(value: number): string {
 }
 
 function formatInteger(value: number): string {
+  if (!isClient.value) return String(value)
+  
   return new Intl.NumberFormat('pt-BR', {
     maximumFractionDigits: 0,
   }).format(value)
