@@ -2,6 +2,7 @@ import { watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { DashboardFilters } from '@/types/filters'
 import { isValidDateRange } from '@/utils/dateHelpers'
+import { useFilters } from '@/composables/useFilters'
 
 /**
  * Serializa filtros para query params da URL
@@ -81,6 +82,17 @@ function deserializeQueryToFilters(query: Record<string, any>): Partial<Dashboar
  * Composable para sincronizar filtros com URL
  */
 export function useFiltersUrlSync() {
+  // Guards para garantir que só roda no client
+  if (!import.meta.client) {
+    return {
+      syncFiltersToUrl: () => {},
+      loadFiltersFromUrl: () => null,
+      getShareableUrl: () => '',
+      copyShareableUrl: async () => false,
+      watchFiltersForUrlSync: () => {},
+    }
+  }
+
   const router = useRouter()
   const route = useRoute()
 
@@ -103,10 +115,34 @@ export function useFiltersUrlSync() {
   }
 
   /**
-   * Carrega filtros da URL atual
+   * Carrega filtros da URL atual e aplica ao estado global
    */
   function loadFiltersFromUrl(): Partial<DashboardFilters> | null {
-    return deserializeQueryToFilters(route.query)
+    const urlFilters = deserializeQueryToFilters(route.query)
+    if (urlFilters && Object.keys(urlFilters).length > 0) {
+      // Aplica os filtros da URL ao estado global
+      const { setDateRange, setPreset, setCustomers, setRegions, setProducts, setCompareWithPrevious, filters } = useFilters()
+      
+      if (urlFilters.dateRange) {
+        setDateRange(urlFilters.dateRange)
+      }
+      if (urlFilters.preset) {
+        setPreset(urlFilters.preset)
+      }
+      if (urlFilters.customers) {
+        setCustomers(urlFilters.customers)
+      }
+      if (urlFilters.regions) {
+        setRegions(urlFilters.regions)
+      }
+      if (urlFilters.products) {
+        setProducts(urlFilters.products)
+      }
+      if (urlFilters.compareWithPrevious !== undefined) {
+        setCompareWithPrevious(urlFilters.compareWithPrevious)
+      }
+    }
+    return urlFilters
   }
 
   /**
@@ -164,7 +200,7 @@ export function useFiltersUrlSync() {
           syncFiltersToUrl(filters, true)
         }, debounce)
       },
-      { immediate, deep: true }
+      { immediate, deep: true, flush: 'post' }
     )
   }
 

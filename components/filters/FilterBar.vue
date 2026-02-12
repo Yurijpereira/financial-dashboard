@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import QuickPeriodButtons from '@/components/filters/QuickPeriodButtons.vue'
 import DateRangePicker from '@/components/filters/DateRangePicker.vue'
 import ComparisonToggle from '@/components/filters/ComparisonToggle.vue'
@@ -52,23 +52,21 @@ const productOptions: FilterOption[] = [
   { value: 'hardware', label: 'Hardware' },
 ]
 
-// Refs locais para os selects
-const selectedCustomers = ref<string[]>([...filters.value.customers])
-const selectedRegions = ref<string[]>([...filters.value.regions])
-const selectedProducts = ref<string[]>([...filters.value.products])
+// Computed getter/setter para evitar fonte de verdade duplicada
+const selectedCustomers = computed({
+  get: () => filters.value.customers,
+  set: (value: string[]) => setCustomers(value),
+})
 
-// Sincroniza mudanças
-function handleCustomersChange(value: string[]): void {
-  setCustomers(value)
-}
+const selectedRegions = computed({
+  get: () => filters.value.regions,
+  set: (value: string[]) => setRegions(value),
+})
 
-function handleRegionsChange(value: string[]): void {
-  setRegions(value)
-}
-
-function handleProductsChange(value: string[]): void {
-  setProducts(value)
-}
+const selectedProducts = computed({
+  get: () => filters.value.products,
+  set: (value: string[]) => setProducts(value),
+})
 
 function toggleAdvancedFilters(): void {
   showAdvancedFilters.value = !showAdvancedFilters.value
@@ -76,28 +74,11 @@ function toggleAdvancedFilters(): void {
 
 function handleReset(): void {
   resetFilters()
-  selectedCustomers.value = []
-  selectedRegions.value = []
-  selectedProducts.value = []
 }
 
 // Carrega filtros da URL no mount e sincroniza mudanças
 onMounted(() => {
-  const urlFilters = loadFiltersFromUrl()
-  if (urlFilters && Object.keys(urlFilters).length > 0) {
-    // Sincroniza os selects locais
-    if (urlFilters.customers) {
-      selectedCustomers.value = urlFilters.customers
-    }
-    if (urlFilters.regions) {
-      selectedRegions.value = urlFilters.regions
-    }
-    if (urlFilters.products) {
-      selectedProducts.value = urlFilters.products
-    }
-  }
-
-  // Inicia o watcher para sincronizar mudanças com a URL
+  loadFiltersFromUrl()
   watchFiltersForUrlSync(() => filters.value)
 })
 </script>
@@ -185,7 +166,6 @@ onMounted(() => {
                 placeholder="Selecione os clientes"
                 :max-selected-labels="3"
                 class="w-full"
-                @update:model-value="handleCustomersChange"
               />
             </div>
 
@@ -202,7 +182,6 @@ onMounted(() => {
                 placeholder="Selecione as regiões"
                 :max-selected-labels="3"
                 class="w-full"
-                @update:model-value="handleRegionsChange"
               />
             </div>
 
@@ -219,7 +198,6 @@ onMounted(() => {
                 placeholder="Selecione os produtos"
                 :max-selected-labels="3"
                 class="w-full"
-                @update:model-value="handleProductsChange"
               />
             </div>
           </div>
@@ -228,24 +206,6 @@ onMounted(() => {
     </template>
   </Card>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.fade-enter-from {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-</style>
-
 
 <style scoped>
 .fade-enter-active,

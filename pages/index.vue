@@ -29,7 +29,9 @@ function formatInteger(value: number): string {
 <template>
   <section class="flex flex-col gap-6">
     <!-- Barra de Filtros -->
-    <FilterBar />
+    <ClientOnly>
+      <FilterBar />
+    </ClientOnly>
 
     <div
       v-if="pending"
