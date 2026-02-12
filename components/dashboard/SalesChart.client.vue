@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
+import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
+import * as echarts from 'echarts'
 import type { EChartsType } from 'echarts'
 
 interface SalesDataPoint {
@@ -19,8 +20,6 @@ const props = withDefaults(defineProps<Props>(), {
 const chartContainer = ref<HTMLDivElement | null>(null)
 let chartInstance: EChartsType | null = null
 
-const { $echarts } = useNuxtApp()
-
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -38,14 +37,24 @@ function formatDate(dateString: string): string {
 }
 
 function initChart() {
-  if (!chartContainer.value || !$echarts) return
+  if (!chartContainer.value) return
 
-  chartInstance = $echarts.init(chartContainer.value)
+  // Verifica se o container tem dimensões
+  const width = chartContainer.value.clientWidth
+  const height = chartContainer.value.clientHeight
+  
+  if (width === 0 || height === 0) {
+    // Tenta novamente após um pequeno delay
+    setTimeout(() => initChart(), 100)
+    return
+  }
+
+  chartInstance = echarts.init(chartContainer.value)
   updateChart()
 }
 
 function updateChart() {
-  if (!chartInstance || props.loading) return
+  if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
 
   const dates = props.data.map(item => formatDate(item.date))
   const values = props.data.map(item => item.value)
@@ -163,7 +172,8 @@ function handleResize() {
   chartInstance?.resize()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await nextTick()
   initChart()
   window.addEventListener('resize', handleResize)
 })
@@ -178,10 +188,10 @@ watch(() => props.loading, updateChart)
 </script>
 
 <template>
-  <div class="relative w-full h-full min-h-[300px]">
+  <div class="relative w-full" style="min-height: 300px; height: 300px;">
     <div
       v-if="loading"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded"
+      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
     >
       <p class="text-sm text-gray-500">Carregando gráfico...</p>
     </div>

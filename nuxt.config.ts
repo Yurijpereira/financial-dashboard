@@ -21,6 +21,9 @@ export default defineNuxtConfig({
         },
       },
     },
+    optimizeDeps: {
+      include: ['echarts'],
+    },
   },
 
   postcss: {
@@ -31,7 +34,7 @@ export default defineNuxtConfig({
   },
 
   build: {
-    transpile: ['primevue'],
+    transpile: ['primevue', 'echarts'],
   },
 
   modules: ['@pinia/nuxt'],

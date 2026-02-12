@@ -1,13 +1,12 @@
-import { useQuery } from '@tanstack/vue-query'
 import type { FinancialSummaryResponse } from '@/types/financial'
-
-async function fetchFinancialSummary(): Promise<FinancialSummaryResponse> {
-  return await $fetch('/api/financial/summary')
-}
+import { useFilters } from '@/composables/useFilters'
 
 export function useFinancialSummaryQuery() {
-  return useQuery({
-    queryKey: ['financial-summary'],
-    queryFn: fetchFinancialSummary,
+  const { apiQueryParams } = useFilters()
+
+  return useFetch<FinancialSummaryResponse>('/api/financial/summary', {
+    key: 'financial-summary',
+    query: apiQueryParams,
+    watch: [apiQueryParams],
   })
 }
