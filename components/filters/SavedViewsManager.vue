@@ -1,0 +1,277 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useSavedViews } from '@/composables/useSavedViews'
+import { useFilters } from '@/composables/useFilters'
+import { formatToDisplayDate } from '@/utils/dateHelpers'
+
+const { savedViews, sortedViews, hasViews, createView, deleteView, applyView, hasViewWithName } =
+  useSavedViews()
+
+const { filters } = useFilters()
+
+// Estado do diálogo
+const showDialog = ref(false)
+const showSaveDialog = ref(false)
+const viewName = ref('')
+const saveError = ref('')
+
+// Estado de confirmação de delete
+const deleteConfirmId = ref<string | null>(null)
+
+/**
+ * Abre o diálogo de views salvas
+ */
+function openDialog(): void {
+  showDialog.value = true
+}
+
+/**
+ * Abre o diálogo para salvar view atual
+ */
+function openSaveDialog(): void {
+  viewName.value = ''
+  saveError.value = ''
+  showSaveDialog.value = true
+}
+
+/**
+ * Salva a view atual
+ */
+function handleSaveView(): void {
+  const name = viewName.value.trim()
+
+  if (!name) {
+    saveError.value = 'Por favor, insira um nome para a visualização'
+    return
+  }
+
+  if (hasViewWithName(name)) {
+    saveError.value = 'Já existe uma visualização com este nome'
+    return
+  }
+
+  createView({
+    name,
+    filters: filters.value,
+  })
+
+  showSaveDialog.value = false
+  viewName.value = ''
+}
+
+/**
+ * Aplica uma view salva
+ */
+function handleApplyView(id: string): void {
+  const viewFilters = applyView(id)
+  if (viewFilters) {
+    // O composable useFilters já está sincronizado, então modificamos direto
+    Object.assign(filters.value, viewFilters)
+    showDialog.value = false
+  }
+}
+
+/**
+ * Confirma delete de uma view
+ */
+function confirmDelete(id: string): void {
+  deleteConfirmId.value = id
+}
+
+/**
+ * Cancela delete
+ */
+function cancelDelete(): void {
+  deleteConfirmId.value = null
+}
+
+/**
+ * Deleta uma view
+ */
+function handleDeleteView(id: string): void {
+  deleteView(id)
+  deleteConfirmId.value = null
+}
+
+/**
+ * Formata data para exibição
+ */
+function formatDate(isoDate: string): string {
+  const date = new Date(isoDate)
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+/**
+ * Gera descrição resumida dos filtros
+ */
+function getFiltersSummary(view: any): string {
+  const parts: string[] = []
+
+  parts.push(
+    `${formatToDisplayDate(view.filters.dateRange.start)} - ${formatToDisplayDate(view.filters.dateRange.end)}`
+  )
+
+  const filterCount =
+    view.filters.customers.length + view.filters.regions.length + view.filters.products.length
+
+  if (filterCount > 0) {
+    parts.push(`${filterCount} filtro${filterCount > 1 ? 's' : ''}`)
+  }
+
+  if (view.filters.compareWithPrevious) {
+    parts.push('com comparação')
+  }
+
+  return parts.join(' • ')
+}
+</script>
+
+<template>
+  <div class="flex items-center gap-2">
+    <!-- Botão para abrir views salvas -->
+    <PButton
+      v-if="hasViews"
+      :label="`${sortedViews.length} ${sortedViews.length === 1 ? 'visualização' : 'visualizações'}`"
+      icon="pi pi-bookmark"
+      class="p-button-outlined p-button-sm"
+      @click="openDialog"
+    />
+
+    <!-- Botão para salvar view atual -->
+    <PButton
+      label="Salvar visualização"
+      icon="pi pi-save"
+      class="p-button-outlined p-button-sm"
+      @click="openSaveDialog"
+    />
+
+    <!-- Diálogo de views salvas -->
+    <PDialog
+      v-model:visible="showDialog"
+      header="Visualizações Salvas"
+      :modal="true"
+      :style="{ width: '600px' }"
+      :draggable="false"
+    >
+      <div
+        v-if="hasViews"
+        class="flex flex-col gap-3"
+      >
+        <div
+          v-for="view in sortedViews"
+          :key="view.id"
+          class="flex items-start gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <i class="pi pi-bookmark text-emerald-600" />
+              <h4 class="font-semibold text-gray-900">{{ view.name }}</h4>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-2">
+              {{ getFiltersSummary(view) }}
+            </p>
+
+            <p class="text-xs text-gray-400">
+              Atualizado em {{ formatDate(view.updatedAt) }}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <PButton
+              v-if="deleteConfirmId !== view.id"
+              label="Aplicar"
+              icon="pi pi-check"
+              class="p-button-sm p-button-success"
+              @click="handleApplyView(view.id)"
+            />
+
+            <PButton
+              v-if="deleteConfirmId === view.id"
+              label="Confirmar?"
+              icon="pi pi-trash"
+              class="p-button-sm p-button-danger"
+              @click="handleDeleteView(view.id)"
+            />
+
+            <PButton
+              v-if="deleteConfirmId === view.id"
+              label="Cancelar"
+              icon="pi pi-times"
+              class="p-button-sm p-button-text"
+              @click="cancelDelete"
+            />
+
+            <PButton
+              v-if="deleteConfirmId !== view.id"
+              icon="pi pi-trash"
+              class="p-button-sm p-button-text p-button-danger"
+              @click="confirmDelete(view.id)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <PMessage
+        v-else
+        severity="info"
+        :closable="false"
+      >
+        Nenhuma visualização salva ainda. Salve suas configurações de filtro para acessá-las rapidamente depois!
+      </PMessage>
+    </PDialog>
+
+    <!-- Diálogo para salvar nova view -->
+    <PDialog
+      v-model:visible="showSaveDialog"
+      header="Salvar Visualização"
+      :modal="true"
+      :style="{ width: '450px' }"
+      :draggable="false"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label
+            for="view-name"
+            class="text-sm font-medium text-gray-700"
+          >
+            Nome da visualização
+          </label>
+          <PInputText
+            id="view-name"
+            v-model="viewName"
+            placeholder="Ex: Vendas Dezembro 2025"
+            class="w-full"
+            @keyup.enter="handleSaveView"
+          />
+
+          <PMessage
+            v-if="saveError"
+            severity="error"
+            :closable="false"
+          >
+            {{ saveError }}
+          </PMessage>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <PButton
+            label="Cancelar"
+            class="p-button-text"
+            @click="showSaveDialog = false"
+          />
+          <PButton
+            label="Salvar"
+            icon="pi pi-save"
+            @click="handleSaveView"
+          />
+        </div>
+      </div>
+    </PDialog>
+  </div>
+</template>

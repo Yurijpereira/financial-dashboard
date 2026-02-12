@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import Button from 'primevue/button'
-
 async function refreshDashboardData(): Promise<void> {
   await refreshNuxtData('financial-summary')
 }
@@ -18,13 +16,13 @@ async function refreshDashboardData(): Promise<void> {
     </div>
 
     <div class="flex items-center gap-2">
-      <Button
+      <PButton
         icon="pi pi-refresh"
         class="p-button-text"
         label="Atualizar dados"
         @click="refreshDashboardData"
       />
-      <Button
+      <PButton
         icon="pi pi-user"
         class="p-button-rounded p-button-text"
         aria-label="Perfil"

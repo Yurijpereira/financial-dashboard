@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import Card from 'primevue/card'
-import MultiSelect from 'primevue/multiselect'
-import Button from 'primevue/button'
+import { ref, onMounted } from 'vue'
 import QuickPeriodButtons from '@/components/filters/QuickPeriodButtons.vue'
 import DateRangePicker from '@/components/filters/DateRangePicker.vue'
+import ComparisonToggle from '@/components/filters/ComparisonToggle.vue'
+import SavedViewsManager from '@/components/filters/SavedViewsManager.vue'
+import ShareFiltersButton from '@/components/filters/ShareFiltersButton.vue'
 import { useFilters } from '@/composables/useFilters'
+import { useFiltersUrlSync } from '@/composables/useFiltersUrlSync'
 import type { FilterOption } from '@/types/filters'
 
 const {
@@ -17,6 +18,8 @@ const {
   setProducts,
   resetFilters,
 } = useFilters()
+
+const { loadFiltersFromUrl, watchFiltersForUrlSync } = useFiltersUrlSync()
 
 // Estado de expansão das seções
 const showAdvancedFilters = ref(false)
@@ -77,14 +80,34 @@ function handleReset(): void {
   selectedRegions.value = []
   selectedProducts.value = []
 }
+
+// Carrega filtros da URL no mount e sincroniza mudanças
+onMounted(() => {
+  const urlFilters = loadFiltersFromUrl()
+  if (urlFilters && Object.keys(urlFilters).length > 0) {
+    // Sincroniza os selects locais
+    if (urlFilters.customers) {
+      selectedCustomers.value = urlFilters.customers
+    }
+    if (urlFilters.regions) {
+      selectedRegions.value = urlFilters.regions
+    }
+    if (urlFilters.products) {
+      selectedProducts.value = urlFilters.products
+    }
+  }
+
+  // Inicia o watcher para sincronizar mudanças com a URL
+  watchFiltersForUrlSync()
+})
 </script>
 
 <template>
-  <Card class="border border-gray-200">
+  <PCard class="border border-gray-200">
     <template #content>
       <div class="flex flex-col gap-6">
         <!-- Cabeçalho -->
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-center gap-2">
             <i class="pi pi-filter text-xl text-gray-600" />
             <h2 class="text-lg font-semibold text-gray-900">Filtros</h2>
@@ -96,8 +119,11 @@ function handleReset(): void {
             </span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <Button
+          <div class="flex items-center gap-2 flex-wrap">
+            <SavedViewsManager />
+            <ShareFiltersButton />
+            
+            <PButton
               v-if="hasActiveFilters || filters.preset !== '30days'"
               label="Limpar filtros"
               icon="pi pi-times"
@@ -123,11 +149,14 @@ function handleReset(): void {
           <DateRangePicker />
         </div>
 
+        <!-- Comparação de Períodos -->
+        <ComparisonToggle />
+
         <!-- Divisor -->
         <div class="border-t border-gray-200" />
 
         <!-- Botão Filtros Avançados -->
-        <Button
+        <PButton
           :label="showAdvancedFilters ? 'Ocultar filtros avançados' : 'Mostrar filtros avançados'"
           :icon="showAdvancedFilters ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
           class="p-button-outlined p-button-secondary"
@@ -148,7 +177,7 @@ function handleReset(): void {
               <label class="text-sm font-medium text-gray-700">
                 Clientes
               </label>
-              <MultiSelect
+              <PMultiSelect
                 v-model="selectedCustomers"
                 :options="customerOptions"
                 option-label="label"
@@ -165,7 +194,7 @@ function handleReset(): void {
               <label class="text-sm font-medium text-gray-700">
                 Regiões
               </label>
-              <MultiSelect
+              <PMultiSelect
                 v-model="selectedRegions"
                 :options="regionOptions"
                 option-label="label"
@@ -182,7 +211,7 @@ function handleReset(): void {
               <label class="text-sm font-medium text-gray-700">
                 Produtos/Serviços
               </label>
-              <MultiSelect
+              <PMultiSelect
                 v-model="selectedProducts"
                 :options="productOptions"
                 option-label="label"
@@ -197,8 +226,26 @@ function handleReset(): void {
         </transition>
       </div>
     </template>
-  </Card>
+  </PCard>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>
+
 
 <style scoped>
 .fade-enter-active,

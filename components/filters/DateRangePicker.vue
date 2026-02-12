@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import Calendar from 'primevue/calendar'
 import type { DateRange } from '@/types/filters'
 import { useFilters } from '@/composables/useFilters'
 import { formatToDisplayDate, getDaysDifference } from '@/utils/dateHelpers'
@@ -52,7 +51,7 @@ const periodInfo = computed(() => {
 <template>
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-3">
-      <Calendar
+      <PCalendar
         v-model="selectedDates"
         selection-mode="range"
         :manual-input="false"

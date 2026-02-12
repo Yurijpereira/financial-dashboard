@@ -1,11 +1,13 @@
 export type FinancialKpiMetric = {
   value: number
   variationPercentage: number | null
+  previousValue?: number
 }
 
 export type SalesDataPoint = {
   date: string
   value: number
+  previousValue?: number
 }
 
 export type CustomerData = {

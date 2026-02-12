@@ -8,6 +8,12 @@ import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import Calendar from 'primevue/calendar'
+import InputText from 'primevue/inputtext'
+import MultiSelect from 'primevue/multiselect'
+import Dialog from 'primevue/dialog'
+import Message from 'primevue/message'
+import Checkbox from 'primevue/checkbox'
 
 const CustomPreset = definePreset(Aura, {
   semantic: {
@@ -47,4 +53,10 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('PDropdown', Dropdown)
   nuxtApp.vueApp.component('PDataTable', DataTable)
   nuxtApp.vueApp.component('PColumn', Column)
+  nuxtApp.vueApp.component('PCalendar', Calendar)
+  nuxtApp.vueApp.component('PInputText', InputText)
+  nuxtApp.vueApp.component('PMultiSelect', MultiSelect)
+  nuxtApp.vueApp.component('PDialog', Dialog)
+  nuxtApp.vueApp.component('PMessage', Message)
+  nuxtApp.vueApp.component('PCheckbox', Checkbox)
 })

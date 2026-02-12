@@ -14,6 +14,7 @@ function createDefaultFilters(): DashboardFilters {
     customers: [],
     regions: [],
     products: [],
+    compareWithPrevious: false,
   }
 }
 
@@ -181,6 +182,20 @@ export function useFilters() {
   }
 
   /**
+   * Ativa/desativa comparação com período anterior
+   */
+  function toggleCompareWithPrevious(): void {
+    filters.value.compareWithPrevious = !filters.value.compareWithPrevious
+  }
+
+  /**
+   * Define se deve comparar com período anterior
+   */
+  function setCompareWithPrevious(value: boolean): void {
+    filters.value.compareWithPrevious = value
+  }
+
+  /**
    * Verifica se há filtros ativos (além do dateRange)
    */
   const hasActiveFilters = computed(() => {
@@ -209,6 +224,10 @@ export function useFilters() {
     const params: Record<string, string> = {
       startDate: filters.value.dateRange.start,
       endDate: filters.value.dateRange.end,
+    }
+
+    if (filters.value.compareWithPrevious) {
+      params.compareWithPrevious = 'true'
     }
 
     if (filters.value.customers.length > 0) {
@@ -251,6 +270,10 @@ export function useFilters() {
     addProduct,
     removeProduct,
     setProducts,
+
+    // Ações - Comparação
+    toggleCompareWithPrevious,
+    setCompareWithPrevious,
 
     // Ações - Geral
     resetFilters,

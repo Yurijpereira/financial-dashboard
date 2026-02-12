@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Button from 'primevue/button'
 import type { PeriodPreset } from '@/types/filters'
 import { useFilters } from '@/composables/useFilters'
 
@@ -31,7 +30,7 @@ function isActive(preset: PeriodPreset): boolean {
 
 <template>
   <div class="flex flex-wrap items-center gap-2">
-    <Button
+    <PButton
       v-for="period in periods"
       :key="period.value"
       :label="period.label"

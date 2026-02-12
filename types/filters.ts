@@ -11,9 +11,23 @@ export type DashboardFilters = {
   customers: string[]
   regions: string[]
   products: string[]
+  compareWithPrevious: boolean
 }
 
 export type FilterOption = {
   value: string
   label: string
+}
+
+export type SavedView = {
+  id: string
+  name: string
+  filters: DashboardFilters
+  createdAt: string
+  updatedAt: string
+}
+
+export type SavedViewInput = {
+  name: string
+  filters: DashboardFilters
 }
