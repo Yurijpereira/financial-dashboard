@@ -134,7 +134,7 @@ function getFiltersSummary(view: any): string {
 <template>
   <div class="flex items-center gap-2">
     <!-- Botão para abrir views salvas -->
-    <PButton
+    <Button
       v-if="hasViews"
       :label="`${sortedViews.length} ${sortedViews.length === 1 ? 'visualização' : 'visualizações'}`"
       icon="pi pi-bookmark"
@@ -143,7 +143,7 @@ function getFiltersSummary(view: any): string {
     />
 
     <!-- Botão para salvar view atual -->
-    <PButton
+    <Button
       label="Salvar visualização"
       icon="pi pi-save"
       class="p-button-outlined p-button-sm"
@@ -151,7 +151,7 @@ function getFiltersSummary(view: any): string {
     />
 
     <!-- Diálogo de views salvas -->
-    <PDialog
+    <Dialog
       v-model:visible="showDialog"
       header="Visualizações Salvas"
       :modal="true"
@@ -183,7 +183,7 @@ function getFiltersSummary(view: any): string {
           </div>
 
           <div class="flex flex-col gap-2">
-            <PButton
+            <Button
               v-if="deleteConfirmId !== view.id"
               label="Aplicar"
               icon="pi pi-check"
@@ -191,7 +191,7 @@ function getFiltersSummary(view: any): string {
               @click="handleApplyView(view.id)"
             />
 
-            <PButton
+            <Button
               v-if="deleteConfirmId === view.id"
               label="Confirmar?"
               icon="pi pi-trash"
@@ -199,7 +199,7 @@ function getFiltersSummary(view: any): string {
               @click="handleDeleteView(view.id)"
             />
 
-            <PButton
+            <Button
               v-if="deleteConfirmId === view.id"
               label="Cancelar"
               icon="pi pi-times"
@@ -207,7 +207,7 @@ function getFiltersSummary(view: any): string {
               @click="cancelDelete"
             />
 
-            <PButton
+            <Button
               v-if="deleteConfirmId !== view.id"
               icon="pi pi-trash"
               class="p-button-sm p-button-text p-button-danger"
@@ -217,17 +217,17 @@ function getFiltersSummary(view: any): string {
         </div>
       </div>
 
-      <PMessage
+      <Message
         v-else
         severity="info"
         :closable="false"
       >
         Nenhuma visualização salva ainda. Salve suas configurações de filtro para acessá-las rapidamente depois!
-      </PMessage>
-    </PDialog>
+      </Message>
+    </Dialog>
 
     <!-- Diálogo para salvar nova view -->
-    <PDialog
+    <Dialog
       v-model:visible="showSaveDialog"
       header="Salvar Visualização"
       :modal="true"
@@ -242,7 +242,7 @@ function getFiltersSummary(view: any): string {
           >
             Nome da visualização
           </label>
-          <PInputText
+          <InputText
             id="view-name"
             v-model="viewName"
             placeholder="Ex: Vendas Dezembro 2025"
@@ -250,28 +250,28 @@ function getFiltersSummary(view: any): string {
             @keyup.enter="handleSaveView"
           />
 
-          <PMessage
+          <Message
             v-if="saveError"
             severity="error"
             :closable="false"
           >
             {{ saveError }}
-          </PMessage>
+          </Message>
         </div>
 
         <div class="flex justify-end gap-2">
-          <PButton
+          <Button
             label="Cancelar"
             class="p-button-text"
             @click="showSaveDialog = false"
           />
-          <PButton
+          <Button
             label="Salvar"
             icon="pi pi-save"
             @click="handleSaveView"
           />
         </div>
       </div>
-    </PDialog>
+    </Dialog>
   </div>
 </template>

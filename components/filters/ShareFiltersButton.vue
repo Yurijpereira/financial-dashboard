@@ -46,7 +46,7 @@ function selectAll(event: Event): void {
 <template>
   <div>
     <!-- Botão de compartilhar -->
-    <PButton
+    <Button
       label="Compartilhar"
       icon="pi pi-share-alt"
       class="p-button-outlined p-button-sm"
@@ -54,7 +54,7 @@ function selectAll(event: Event): void {
     />
 
     <!-- Diálogo de compartilhamento -->
-    <PDialog
+    <Dialog
       v-model:visible="showDialog"
       header="Compartilhar Filtros"
       :modal="true"
@@ -72,14 +72,14 @@ function selectAll(event: Event): void {
           </label>
 
           <div class="flex gap-2">
-            <PInputText
+            <InputText
               :model-value="shareUrl"
               readonly
               class="flex-1 font-mono text-sm"
               @focus="selectAll"
             />
 
-            <PButton
+            <Button
               :icon="copySuccess ? 'pi pi-check' : 'pi pi-copy'"
               :class="[
                 'p-button-sm',
@@ -91,13 +91,13 @@ function selectAll(event: Event): void {
           </div>
         </div>
 
-        <PMessage
+        <Message
           v-if="copySuccess"
           severity="success"
           :closable="false"
         >
           URL copiada para a área de transferência!
-        </PMessage>
+        </Message>
 
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div class="flex items-start gap-2">
@@ -114,13 +114,13 @@ function selectAll(event: Event): void {
         </div>
 
         <div class="flex justify-end">
-          <PButton
+          <Button
             label="Fechar"
             class="p-button-text"
             @click="showDialog = false"
           />
         </div>
       </div>
-    </PDialog>
+    </Dialog>
   </div>
 </template>

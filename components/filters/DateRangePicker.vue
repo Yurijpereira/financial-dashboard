@@ -26,12 +26,15 @@ function handleDateSelect(dates: Date | Date[] | null): void {
   if (!dates || !Array.isArray(dates) || dates.length !== 2) return
 
   const [start, end] = dates
+  if (!start || !end) return
 
-  // Formata para ISO string
-  const startISO = start.toISOString().split('T')[0]
-  const endISO = end.toISOString().split('T')[0]
+  // Formata para ISO string (YYYY-MM-DD)
+  const startParts = start.toISOString().split('T')
+  const endParts = end.toISOString().split('T')
+  
+  if (!startParts[0] || !endParts[0]) return
 
-  setDateRange({ start: startISO, end: endISO })
+  setDateRange({ start: startParts[0], end: endParts[0] })
 }
 
 // Informações sobre o período selecionado
@@ -51,7 +54,7 @@ const periodInfo = computed(() => {
 <template>
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-3">
-      <PCalendar
+      <Calendar
         v-model="selectedDates"
         selection-mode="range"
         :manual-input="false"

@@ -33,6 +33,7 @@ const previousPeriod = computed(() => {
  */
 const comparisonDescription = computed(() => {
   const prev = previousPeriod.value
+  if (!prev.start || !prev.end) return ''
   return `${formatToDisplayDate(prev.start)} - ${formatToDisplayDate(prev.end)}`
 })
 </script>
@@ -40,7 +41,7 @@ const comparisonDescription = computed(() => {
 <template>
   <div class="flex flex-col gap-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
     <div class="flex items-start gap-3">
-      <PCheckbox
+      <Checkbox
         :model-value="filters.compareWithPrevious"
         binary
         input-id="compare-toggle"

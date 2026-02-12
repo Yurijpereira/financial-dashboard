@@ -30,7 +30,7 @@ function isActive(preset: PeriodPreset): boolean {
 
 <template>
   <div class="flex flex-wrap items-center gap-2">
-    <PButton
+    <Button
       v-for="period in periods"
       :key="period.value"
       :label="period.label"

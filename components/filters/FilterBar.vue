@@ -98,12 +98,12 @@ onMounted(() => {
   }
 
   // Inicia o watcher para sincronizar mudanças com a URL
-  watchFiltersForUrlSync()
+  watchFiltersForUrlSync(() => filters.value)
 })
 </script>
 
 <template>
-  <PCard class="border border-gray-200">
+  <Card class="border border-gray-200">
     <template #content>
       <div class="flex flex-col gap-6">
         <!-- Cabeçalho -->
@@ -123,7 +123,7 @@ onMounted(() => {
             <SavedViewsManager />
             <ShareFiltersButton />
             
-            <PButton
+            <Button
               v-if="hasActiveFilters || filters.preset !== '30days'"
               label="Limpar filtros"
               icon="pi pi-times"
@@ -156,7 +156,7 @@ onMounted(() => {
         <div class="border-t border-gray-200" />
 
         <!-- Botão Filtros Avançados -->
-        <PButton
+        <Button
           :label="showAdvancedFilters ? 'Ocultar filtros avançados' : 'Mostrar filtros avançados'"
           :icon="showAdvancedFilters ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
           class="p-button-outlined p-button-secondary"
@@ -177,7 +177,7 @@ onMounted(() => {
               <label class="text-sm font-medium text-gray-700">
                 Clientes
               </label>
-              <PMultiSelect
+              <MultiSelect
                 v-model="selectedCustomers"
                 :options="customerOptions"
                 option-label="label"
@@ -194,7 +194,7 @@ onMounted(() => {
               <label class="text-sm font-medium text-gray-700">
                 Regiões
               </label>
-              <PMultiSelect
+              <MultiSelect
                 v-model="selectedRegions"
                 :options="regionOptions"
                 option-label="label"
@@ -211,7 +211,7 @@ onMounted(() => {
               <label class="text-sm font-medium text-gray-700">
                 Produtos/Serviços
               </label>
-              <PMultiSelect
+              <MultiSelect
                 v-model="selectedProducts"
                 :options="productOptions"
                 option-label="label"
@@ -226,7 +226,7 @@ onMounted(() => {
         </transition>
       </div>
     </template>
-  </PCard>
+  </Card>
 </template>
 
 <style scoped>

@@ -43,4 +43,6 @@ export default defineNuxtConfig({
     strict: true,
     typeCheck: false,
   },
+
+  ssr: true,
 })

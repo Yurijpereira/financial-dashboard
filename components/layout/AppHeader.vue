@@ -16,13 +16,13 @@ async function refreshDashboardData(): Promise<void> {
     </div>
 
     <div class="flex items-center gap-2">
-      <PButton
+      <Button
         icon="pi pi-refresh"
         class="p-button-text"
         label="Atualizar dados"
         @click="refreshDashboardData"
       />
-      <PButton
+      <Button
         icon="pi pi-user"
         class="p-button-rounded p-button-text"
         aria-label="Perfil"
