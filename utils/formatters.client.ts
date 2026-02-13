@@ -31,13 +31,6 @@ export function formatNumber(value: number): string {
 }
 
 /**
- * Formata percentuais
- */
-export function formatPercentage(value: number): string {
-  return `${value.toFixed(1)}%`
-}
-
-/**
  * Formata data para exibição
  */
 export function formatDateTime(isoDate: string): string {
