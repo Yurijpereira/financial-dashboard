@@ -1,13 +1,20 @@
-import { defineNuxtPlugin } from 'nuxt/app'
+import { defineNuxtPlugin } from '#app'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import { definePreset } from '@primevue/themes'
 
+// Import PrimeVue components
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import Calendar from 'primevue/calendar'
+import InputText from 'primevue/inputtext'
+import MultiSelect from 'primevue/multiselect'
+import Dialog from 'primevue/dialog'
+import Message from 'primevue/message'
+import Checkbox from 'primevue/checkbox'
 
 const CustomPreset = definePreset(Aura, {
   semantic: {
@@ -28,6 +35,7 @@ const CustomPreset = definePreset(Aura, {
 })
 
 export default defineNuxtPlugin((nuxtApp) => {
+  // Configure PrimeVue with theme
   nuxtApp.vueApp.use(PrimeVue, {
     ripple: true,
     theme: {
@@ -42,9 +50,16 @@ export default defineNuxtPlugin((nuxtApp) => {
     },
   })
 
-  nuxtApp.vueApp.component('PButton', Button)
-  nuxtApp.vueApp.component('PCard', Card)
-  nuxtApp.vueApp.component('PDropdown', Dropdown)
-  nuxtApp.vueApp.component('PDataTable', DataTable)
-  nuxtApp.vueApp.component('PColumn', Column)
+  // Register components globally
+  nuxtApp.vueApp.component('Button', Button)
+  nuxtApp.vueApp.component('Card', Card)
+  nuxtApp.vueApp.component('Dropdown', Dropdown)
+  nuxtApp.vueApp.component('DataTable', DataTable)
+  nuxtApp.vueApp.component('Column', Column)
+  nuxtApp.vueApp.component('Calendar', Calendar)
+  nuxtApp.vueApp.component('InputText', InputText)
+  nuxtApp.vueApp.component('MultiSelect', MultiSelect)
+  nuxtApp.vueApp.component('Dialog', Dialog)
+  nuxtApp.vueApp.component('Message', Message)
+  nuxtApp.vueApp.component('Checkbox', Checkbox)
 })

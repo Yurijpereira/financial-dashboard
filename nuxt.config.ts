@@ -10,7 +10,7 @@ export default defineNuxtConfig({
 
   css: [
     'primeicons/primeicons.css',
-    '@@/assets/scss/main.scss',
+    '~/assets/scss/main.scss',
   ],
 
   vite: {
@@ -20,6 +20,9 @@ export default defineNuxtConfig({
           additionalData: '',
         },
       },
+    },
+    optimizeDeps: {
+      include: ['echarts'],
     },
   },
 
@@ -31,7 +34,19 @@ export default defineNuxtConfig({
   },
 
   build: {
-    transpile: ['primevue'],
+    transpile: ['primevue', 'echarts'],
+  },
+
+  // Otimização de imports client/server
+  optimization: {
+    treeShake: {
+      composables: {
+        client: {
+          useFilters: ['loadFiltersFromStorage', 'saveFiltersToStorage', 'setupFiltersStorageWatcher'],
+          useSavedViews: ['loadViewsFromStorage', 'saveViewsToStorage'],
+        }
+      }
+    }
   },
 
   modules: ['@pinia/nuxt'],
@@ -39,5 +54,25 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false,
+  },
+
+  ssr: true,
+
+  // Configurações para melhorar hidratação
+  experimental: {
+    payloadExtraction: false,
+  },
+
+  app: {
+    head: {
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      ],
+    },
+  },
+
+  // Desabilita inlining de estilos para evitar mismatch
+  features: {
+    inlineStyles: false,
   },
 })

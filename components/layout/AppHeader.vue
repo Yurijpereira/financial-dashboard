@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import Button from 'primevue/button'
-import { useQueryClient } from '@tanstack/vue-query'
-
-const queryClient = useQueryClient()
-
 async function refreshDashboardData(): Promise<void> {
-  await queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+  await refreshNuxtData('financial-summary')
 }
 </script>
 

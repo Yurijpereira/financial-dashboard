@@ -1,12 +1,25 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import Card from 'primevue/card'
 
 import KpiCard from '@/components/dashboard/KpiCard.vue'
+import ConversionMetrics from '@/components/dashboard/ConversionMetrics.vue'
+import FilterBar from '@/components/filters/FilterBar.vue'
+import SalesChart from '@/components/dashboard/SalesChart.client.vue'
+import TopCustomersChart from '@/components/dashboard/TopCustomersChart.client.vue'
+import MonthlyComparisonChart from '@/components/dashboard/MonthlyComparisonChart.client.vue'
 import { useFinancialSummaryQuery } from '@/composables/useFinancialSummaryQuery'
 
-const { data, isPending, isError } = useFinancialSummaryQuery()
+const { data, pending, error } = useFinancialSummaryQuery()
+const isClient = ref(false)
+
+onMounted(() => {
+  isClient.value = true
+})
 
 function formatCurrencyBRL(value: number): string {
+  if (!isClient.value) return `R$ ${value}`
+  
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -15,6 +28,8 @@ function formatCurrencyBRL(value: number): string {
 }
 
 function formatInteger(value: number): string {
+  if (!isClient.value) return String(value)
+  
   return new Intl.NumberFormat('pt-BR', {
     maximumFractionDigits: 0,
   }).format(value)
@@ -23,8 +38,13 @@ function formatInteger(value: number): string {
 
 <template>
   <section class="flex flex-col gap-6">
+    <!-- Barra de Filtros -->
+    <ClientOnly>
+      <FilterBar />
+    </ClientOnly>
+
     <div
-      v-if="isPending"
+      v-if="pending"
       class="card-base"
     >
       <p class="text-sm text-gray-500">
@@ -33,7 +53,7 @@ function formatInteger(value: number): string {
     </div>
 
     <div
-      v-else-if="isError"
+      v-else-if="error"
       class="card-base border border-red-200"
     >
       <p class="text-sm text-red-700 font-medium">
@@ -66,51 +86,59 @@ function formatInteger(value: number): string {
         />
       </div>
 
-      <!-- Cards principais -->
-      <div class="grid grid-cols-1 lg:grid-cols-[2fr,1.5fr] gap-4">
+      <!-- Métricas de Conversão -->
+      <Card>
+        <template #title>
+          <h3 class="text-lg font-semibold">Funil de Conversão</h3>
+        </template>
+
+        <template #content>
+          <ConversionMetrics 
+            :metrics="data.conversionMetrics"
+            :loading="pending"
+          />
+        </template>
+      </Card>
+
+      <!-- Gráfico de Vendas -->
+      <Card>
+        <template #title>
+          <h3 class="text-lg font-semibold">Vendas por período</h3>
+        </template>
+
+        <template #content>
+          <SalesChart 
+            :data="data.salesSeries" 
+            :loading="pending"
+          />
+        </template>
+      </Card>
+
+      <!-- Gráficos de Comparação -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <template #title>
-            <h3 class="text-lg font-semibold">Vendas por período</h3>
+            <h3 class="text-lg font-semibold">Comparação Mensal</h3>
           </template>
 
           <template #content>
-            <ul class="mt-3 text-sm text-gray-700 space-y-1">
-              <li
-                v-for="salePoint in data.salesSeries"
-                :key="salePoint.date"
-                class="flex items-center justify-between"
-              >
-                <span class="text-gray-500">{{ salePoint.date }}</span>
-                <span class="font-medium">{{ formatCurrencyBRL(salePoint.value) }}</span>
-              </li>
-            </ul>
+            <MonthlyComparisonChart 
+              :data="data.monthlyComparison"
+              :loading="pending"
+            />
           </template>
         </Card>
 
         <Card>
           <template #title>
-            <h3 class="text-lg font-semibold">Top clientes</h3>
+            <h3 class="text-lg font-semibold">Top Clientes</h3>
           </template>
 
           <template #content>
-            <ul class="mt-3 text-sm text-gray-700 space-y-2">
-              <li
-                v-for="customer in data.topCustomers"
-                :key="customer.id"
-                class="flex items-start justify-between gap-3"
-              >
-                <div class="flex flex-col">
-                  <span class="font-medium">{{ customer.name }}</span>
-                  <span class="text-gray-500">
-                    {{ formatInteger(customer.orders) }} pedidos
-                  </span>
-                </div>
-
-                <span class="font-semibold">
-                  {{ formatCurrencyBRL(customer.revenue) }}
-                </span>
-              </li>
-            </ul>
+            <TopCustomersChart 
+              :data="data.topCustomers"
+              :loading="pending"
+            />
           </template>
         </Card>
       </div>
