@@ -6,7 +6,7 @@ import { formatToDisplayDate, getDaysDifference } from '@/utils/dateHelpers'
 
 const { filters, setDateRange } = useFilters()
 
-// Converte string ISO para Date para o Calendar component
+// Converte string ISO para Date para o DatePicker component
 const selectedDates = ref<Date[]>([])
 const isClient = ref(false)
 
@@ -20,9 +20,12 @@ onMounted(() => {
 function updateSelectedDates(range: DateRange) {
   if (!isClient.value) return
   
-  // Usa UTC para evitar problemas de timezone
-  const startDate = new Date(range.start)
-  const endDate = new Date(range.end)
+  // Parse das datas ISO usando timezone local
+  const [year1, month1, day1] = range.start.split('-').map(Number) as [number, number, number]
+  const [year2, month2, day2] = range.end.split('-').map(Number) as [number, number, number]
+  
+  const startDate = new Date(year1, month1 - 1, day1)
+  const endDate = new Date(year2, month2 - 1, day2)
   
   selectedDates.value = [startDate, endDate]
 }
@@ -36,23 +39,16 @@ watch(
   { flush: 'post' }
 )
 
-// Quando o usuário seleciona datas no calendar
-function handleDateSelect(dates: Date | Date[] | null): void {
+// Quando o usuário seleciona datas no DatePicker
+function handleDateSelect(dates: Date | Date[] | (Date | null)[] | null | undefined): void {
   if (!dates || !Array.isArray(dates) || dates.length !== 2) return
 
   const [start, end] = dates
   if (!start || !end) return
 
-  // Formata para ISO string (YYYY-MM-DD) usando UTC
-  const year1 = start.getFullYear()
-  const month1 = String(start.getMonth() + 1).padStart(2, '0')
-  const day1 = String(start.getDate()).padStart(2, '0')
-  const startISO = `${year1}-${month1}-${day1}`
-  
-  const year2 = end.getFullYear()
-  const month2 = String(end.getMonth() + 1).padStart(2, '0')
-  const day2 = String(end.getDate()).padStart(2, '0')
-  const endISO = `${year2}-${month2}-${day2}`
+  // Formata para ISO string (YYYY-MM-DD) usando timezone local
+  const startISO = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`
+  const endISO = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
 
   setDateRange({ start: startISO, end: endISO })
 }
@@ -75,7 +71,7 @@ const periodInfo = computed(() => {
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-3">
       <ClientOnly>
-        <Calendar
+        <DatePicker
           v-if="isClient"
           v-model="selectedDates"
           selection-mode="range"

@@ -5,7 +5,9 @@ import type { SavedView, SavedViewInput, DashboardFilters } from '@/types/filter
  * Gera um ID único para uma view
  */
 function generateId(): string {
-  return `view_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  const timestamp = Date.now()
+  const randomPart = Math.random().toString(36).substring(2, 11)
+  return `view_${timestamp}_${randomPart}`
 }
 
 // Estado global das views salvas

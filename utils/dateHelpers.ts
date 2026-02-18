@@ -1,5 +1,8 @@
 import type { DateRange, PeriodPreset } from '@/types/filters'
 
+// Constante local para evitar dependência circular
+const TIME_SUFFIX = 'T00:00:00'
+
 /**
  * Formata uma data para o padrão ISO (YYYY-MM-DD)
  */
@@ -14,7 +17,7 @@ export function formatToISODate(date: Date): string {
  * Formata uma data para exibição (DD/MM/YYYY)
  */
 export function formatToDisplayDate(isoDate: string): string {
-  const date = new Date(isoDate + 'T00:00:00')
+  const date = new Date(isoDate + TIME_SUFFIX)
   const day = String(date.getDate()).padStart(2, '0')
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const year = date.getFullYear()
@@ -91,10 +94,12 @@ export function getDateRangeFromPreset(preset: PeriodPreset): DateRange {
  * Valida se uma data está no formato ISO válido
  */
 export function isValidISODate(dateString: string): boolean {
+  if (!dateString || typeof dateString !== 'string') return false
+  
   const regex = /^\d{4}-\d{2}-\d{2}$/
   if (!regex.test(dateString)) return false
 
-  const date = new Date(dateString + 'T00:00:00')
+  const date = new Date(dateString + TIME_SUFFIX)
   return !isNaN(date.getTime())
 }
 
@@ -102,12 +107,16 @@ export function isValidISODate(dateString: string): boolean {
  * Valida se um range de datas é válido
  */
 export function isValidDateRange(range: DateRange): boolean {
+  if (!range || typeof range !== 'object') {
+    return false
+  }
+  
   if (!isValidISODate(range.start) || !isValidISODate(range.end)) {
     return false
   }
 
-  const start = new Date(range.start + 'T00:00:00')
-  const end = new Date(range.end + 'T00:00:00')
+  const start = new Date(range.start + TIME_SUFFIX)
+  const end = new Date(range.end + TIME_SUFFIX)
 
   return start <= end
 }
@@ -116,8 +125,9 @@ export function isValidDateRange(range: DateRange): boolean {
  * Calcula a diferença em dias entre duas datas
  */
 export function getDaysDifference(start: string, end: string): number {
-  const startDate = new Date(start + 'T00:00:00')
-  const endDate = new Date(end + 'T00:00:00')
+  const startDate = new Date(start + TIME_SUFFIX)
+  const endDate = new Date(end + TIME_SUFFIX)
   const diffTime = endDate.getTime() - startDate.getTime()
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const MS_PER_DAY = 1000 * 60 * 60 * 24
+  return Math.ceil(diffTime / MS_PER_DAY)
 }
