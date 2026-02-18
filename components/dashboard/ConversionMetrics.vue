@@ -19,6 +19,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const isClient = ref(false)
 
+// Constantes
+const PERCENTAGE_PRECISION = 1
+const TREND_THRESHOLD = 0
+
 onMounted(() => {
   isClient.value = true
 })
