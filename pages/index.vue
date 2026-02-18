@@ -107,10 +107,12 @@ function formatInteger(value: number): string {
         </template>
 
         <template #content>
-          <SalesChart 
-            :data="data.salesSeries" 
-            :loading="pending"
-          />
+          <ClientOnly>
+            <SalesChart 
+              :data="data.salesSeries" 
+              :loading="pending"
+            />
+          </ClientOnly>
         </template>
       </Card>
 
@@ -122,10 +124,12 @@ function formatInteger(value: number): string {
           </template>
 
           <template #content>
-            <MonthlyComparisonChart 
-              :data="data.monthlyComparison"
-              :loading="pending"
-            />
+            <ClientOnly>
+              <MonthlyComparisonChart 
+                :data="data.monthlyComparison"
+                :loading="pending"
+              />
+            </ClientOnly>
           </template>
         </Card>
 
@@ -135,10 +139,12 @@ function formatInteger(value: number): string {
           </template>
 
           <template #content>
-            <TopCustomersChart 
-              :data="data.topCustomers"
-              :loading="pending"
-            />
+            <ClientOnly>
+              <TopCustomersChart 
+                :data="data.topCustomers"
+                :loading="pending"
+              />
+            </ClientOnly>
           </template>
         </Card>
       </div>

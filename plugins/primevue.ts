@@ -9,7 +9,7 @@ import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import Calendar from 'primevue/calendar'
+import DatePicker from 'primevue/datepicker'
 import InputText from 'primevue/inputtext'
 import MultiSelect from 'primevue/multiselect'
 import Dialog from 'primevue/dialog'
@@ -56,7 +56,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('Dropdown', Dropdown)
   nuxtApp.vueApp.component('DataTable', DataTable)
   nuxtApp.vueApp.component('Column', Column)
-  nuxtApp.vueApp.component('Calendar', Calendar)
+  nuxtApp.vueApp.component('DatePicker', DatePicker)
   nuxtApp.vueApp.component('InputText', InputText)
   nuxtApp.vueApp.component('MultiSelect', MultiSelect)
   nuxtApp.vueApp.component('Dialog', Dialog)

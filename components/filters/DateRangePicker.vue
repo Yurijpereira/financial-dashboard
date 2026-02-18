@@ -6,7 +6,7 @@ import { formatToDisplayDate, getDaysDifference } from '@/utils/dateHelpers'
 
 const { filters, setDateRange } = useFilters()
 
-// Converte string ISO para Date para o Calendar component
+// Converte string ISO para Date para o DatePicker component
 const selectedDates = ref<Date[]>([])
 const isClient = ref(false)
 
@@ -36,8 +36,8 @@ watch(
   { flush: 'post' }
 )
 
-// Quando o usuário seleciona datas no calendar
-function handleDateSelect(dates: Date | Date[] | null): void {
+// Quando o usuário seleciona datas no DatePicker
+function handleDateSelect(dates: Date | Date[] | (Date | null)[] | null | undefined): void {
   if (!dates || !Array.isArray(dates) || dates.length !== 2) return
 
   const [start, end] = dates
@@ -75,7 +75,7 @@ const periodInfo = computed(() => {
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-3">
       <ClientOnly>
-        <Calendar
+        <DatePicker
           v-if="isClient"
           v-model="selectedDates"
           selection-mode="range"
