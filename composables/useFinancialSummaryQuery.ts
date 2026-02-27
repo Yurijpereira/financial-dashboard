@@ -1,21 +1,50 @@
 import type { FinancialSummaryResponse } from '@/types/financial'
 import { useFilters } from '@/composables/useFilters'
-import { computed, watch } from 'vue'
+import { computed, onServerPrefetch } from 'vue'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 
 export function useFinancialSummaryQuery() {
   const { apiQueryParams } = useFilters()
+  const queryClient = useQueryClient()
+  const requestFetch = import.meta.server ? useRequestFetch() : $fetch
+
+  const serializedParams = computed(() => {
+    return JSON.stringify(apiQueryParams.value)
+  })
 
   const queryKey = computed(() => {
-    const params = apiQueryParams.value
-    return `financial-summary-${JSON.stringify(params)}`
+    return ['financial-summary', serializedParams.value] as const
   })
 
-  return useFetch<FinancialSummaryResponse>('/api/financial/summary', {
-    key: queryKey,
-    query: apiQueryParams,
-    immediate: true,
-    getCachedData: (key) => {
-      return useNuxtApp().payload.data[key] ?? useNuxtApp().static.data[key]
-    },
+  const queryFn = async (): Promise<FinancialSummaryResponse> => {
+    return requestFetch<FinancialSummaryResponse>('/api/financial/summary', {
+      query: apiQueryParams.value,
+    })
+  }
+
+  if (import.meta.server) {
+    onServerPrefetch(async () => {
+      await queryClient.prefetchQuery({
+        queryKey: queryKey.value,
+        queryFn,
+      })
+    })
+  }
+
+  const query = useQuery<FinancialSummaryResponse, Error>({
+    queryKey,
+    queryFn,
   })
+
+  const pending = computed(() => {
+    return query.isPending.value
+  })
+
+  return {
+    data: query.data,
+    pending,
+    isFetching: query.isFetching,
+    error: query.error,
+    refresh: query.refetch,
+  }
 }

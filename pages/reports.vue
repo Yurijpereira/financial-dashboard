@@ -236,7 +236,7 @@ async function handleExportPdf(): Promise<void> {
       <template #title>
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold">Transacoes detalhadas</h2>
-          <span class="text-sm text-gray-500">
+          <span class="text-sm text-gray-500 mr-5">
             {{ hasActiveAdvancedFilters ? 'Filtros avancados ativos' : 'Visao geral' }}
           </span>
         </div>
