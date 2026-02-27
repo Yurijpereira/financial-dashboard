@@ -4,9 +4,39 @@ import type { DashboardFilters } from '@/types/filters'
 import { isValidDateRange } from '@/utils/dateHelpers'
 import { useFilters } from '@/composables/useFilters'
 
-/**
- * Serializa filtros para query params da URL
- */
+function normalizeQueryValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value.join(',')
+  }
+
+  return value == null ? '' : String(value)
+}
+
+function hasSameQuery(
+  currentQuery: Record<string, unknown>,
+  nextQuery: Record<string, string>
+): boolean {
+  const currentKeys = Object.keys(currentQuery).sort()
+  const nextKeys = Object.keys(nextQuery).sort()
+
+  if (currentKeys.length !== nextKeys.length) {
+    return false
+  }
+
+  for (let index = 0; index < nextKeys.length; index += 1) {
+    const key = nextKeys[index]
+    if (!key || currentKeys[index] !== key) {
+      return false
+    }
+
+    if (normalizeQueryValue(currentQuery[key]) !== nextQuery[key]) {
+      return false
+    }
+  }
+
+  return true
+}
+
 function serializeFiltersToQuery(filters: DashboardFilters): Record<string, string> {
   const query: Record<string, string> = {
     start: filters.dateRange.start,
@@ -33,14 +63,10 @@ function serializeFiltersToQuery(filters: DashboardFilters): Record<string, stri
   return query
 }
 
-/**
- * Deserializa query params da URL para filtros
- */
 function deserializeQueryToFilters(query: Record<string, any>): Partial<DashboardFilters> | null {
   try {
     const filters: Partial<DashboardFilters> = {}
 
-    // Date range
     if (query.start && query.end) {
       const dateRange = { start: query.start as string, end: query.end as string }
       
@@ -49,12 +75,10 @@ function deserializeQueryToFilters(query: Record<string, any>): Partial<Dashboar
       }
     }
 
-    // Preset
     if (query.preset) {
       filters.preset = query.preset as DashboardFilters['preset']
     }
 
-    // Lists
     if (query.customers) {
       filters.customers = (query.customers as string).split(',').filter(Boolean)
     }
@@ -78,11 +102,7 @@ function deserializeQueryToFilters(query: Record<string, any>): Partial<Dashboar
   }
 }
 
-/**
- * Composable para sincronizar filtros com URL
- */
 export function useFiltersUrlSync() {
-  // Guards para garantir que só roda no client
   if (!import.meta.client) {
     return {
       syncFiltersToUrl: () => {},
@@ -93,45 +113,38 @@ export function useFiltersUrlSync() {
     }
   }
 
-  // Declarações no topo, mas só serão usadas no cliente
   let router: ReturnType<typeof useRouter> | null = null
   let route: ReturnType<typeof useRoute> | null = null
   
-  // Inicializa router/route apenas no cliente
-  if (process.client) {
+  if (import.meta.client) {
     router = useRouter()
     route = useRoute()
   }
 
-  /**
-   * Atualiza a URL com os filtros atuais (sem navegar)
-   */
   function syncFiltersToUrl(filters: DashboardFilters, replace = true): void {
-    if (!router) return
+    if (!router || !route) return
     
     const query = serializeFiltersToQuery(filters)
+    if (hasSameQuery(route.query as Record<string, unknown>, query)) {
+      return
+    }
 
     const method = replace ? router.replace : router.push
     
     method({
       query,
     }).catch((err) => {
-      // Silencia erro de navegação duplicada
       if (err.name !== 'NavigationDuplicated') {
         console.warn('Failed to sync filters to URL:', err)
       }
     })
   }
 
-  /**
-   * Carrega filtros da URL atual e aplica ao estado global
-   */
   function loadFiltersFromUrl(): Partial<DashboardFilters> | null {
     if (!route) return null
     
     const urlFilters = deserializeQueryToFilters(route.query)
     if (urlFilters && Object.keys(urlFilters).length > 0) {
-      // Aplica os filtros da URL ao estado global
       const { setDateRange, setPreset, setCustomers, setRegions, setProducts, setCompareWithPrevious, filters } = useFilters()
       
       if (urlFilters.dateRange) {
@@ -156,9 +169,6 @@ export function useFiltersUrlSync() {
     return urlFilters
   }
 
-  /**
-   * Gera uma URL compartilhável com os filtros atuais
-   */
   function getShareableUrl(filters: DashboardFilters): string {
     const query = serializeFiltersToQuery(filters)
     const queryString = new URLSearchParams(query).toString()
@@ -171,9 +181,6 @@ export function useFiltersUrlSync() {
     return `?${queryString}`
   }
 
-  /**
-   * Copia a URL compartilhável para a área de transferência
-   */
   async function copyShareableUrl(filters: DashboardFilters): Promise<boolean> {
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
       return false
@@ -189,9 +196,6 @@ export function useFiltersUrlSync() {
     }
   }
 
-  /**
-   * Observa mudanças nos filtros e atualiza a URL automaticamente
-   */
   function watchFiltersForUrlSync(
     getFilters: () => DashboardFilters,
     options: { immediate?: boolean; debounce?: number } = {}

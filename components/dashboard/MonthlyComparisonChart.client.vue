@@ -36,12 +36,10 @@ function formatCurrency(value: number): string {
 function initChart() {
   if (!chartContainer.value) return
 
-  // Verifica se o container tem dimensões
   const width = chartContainer.value.clientWidth
   const height = chartContainer.value.clientHeight
   
   if (width === 0 || height === 0) {
-    // Tenta novamente após um pequeno delay
     setTimeout(() => initChart(), 100)
     return
   }

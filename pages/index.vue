@@ -38,7 +38,6 @@ function formatInteger(value: number): string {
 
 <template>
   <section class="flex flex-col gap-6">
-    <!-- Barra de Filtros -->
     <ClientOnly>
       <FilterBar />
     </ClientOnly>
@@ -65,7 +64,6 @@ function formatInteger(value: number): string {
     </div>
 
     <template v-else-if="data">
-      <!-- KPIs -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <KpiCard
           label="Faturamento no período"
@@ -86,7 +84,6 @@ function formatInteger(value: number): string {
         />
       </div>
 
-      <!-- Métricas de Conversão -->
       <Card>
         <template #title>
           <h3 class="text-lg font-semibold">Funil de Conversão</h3>
@@ -100,7 +97,6 @@ function formatInteger(value: number): string {
         </template>
       </Card>
 
-      <!-- Gráfico de Vendas -->
       <Card>
         <template #title>
           <h3 class="text-lg font-semibold">Vendas por período</h3>
@@ -116,7 +112,6 @@ function formatInteger(value: number): string {
         </template>
       </Card>
 
-      <!-- Gráficos de Comparação -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <template #title>

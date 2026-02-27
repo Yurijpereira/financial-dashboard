@@ -6,23 +6,16 @@ import { useFiltersUrlSync } from '@/composables/useFiltersUrlSync'
 const { filters } = useFilters()
 const { getShareableUrl, copyShareableUrl } = useFiltersUrlSync()
 
-// Estado do diálogo
 const showDialog = ref(false)
 const shareUrl = ref('')
 const copySuccess = ref(false)
 
-/**
- * Abre o diálogo de compartilhamento
- */
 function openShareDialog(): void {
   shareUrl.value = getShareableUrl(filters.value)
   copySuccess.value = false
   showDialog.value = true
 }
 
-/**
- * Copia URL para clipboard
- */
 async function handleCopyUrl(): Promise<void> {
   const success = await copyShareableUrl(filters.value)
 
@@ -34,9 +27,6 @@ async function handleCopyUrl(): Promise<void> {
   }
 }
 
-/**
- * Seleciona todo o texto da URL
- */
 function selectAll(event: Event): void {
   const input = event.target as HTMLInputElement
   input.select()
@@ -45,7 +35,6 @@ function selectAll(event: Event): void {
 
 <template>
   <div>
-    <!-- Botão de compartilhar -->
     <Button
       label="Compartilhar"
       icon="pi pi-share-alt"
@@ -53,7 +42,6 @@ function selectAll(event: Event): void {
       @click="openShareDialog"
     />
 
-    <!-- Diálogo de compartilhamento -->
     <Dialog
       v-model:visible="showDialog"
       header="Compartilhar Filtros"

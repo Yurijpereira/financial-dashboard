@@ -1,42 +1,30 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { useSavedViews } from '@/composables/useSavedViews'
 import { useFilters } from '@/composables/useFilters'
 import { formatToDisplayDate } from '@/utils/dateHelpers'
 
-const { savedViews, sortedViews, hasViews, createView, deleteView, applyView, hasViewWithName } =
+const { sortedViews, hasViews, createView, deleteView, applyView, hasViewWithName } =
   useSavedViews()
 
 const { filters } = useFilters()
 
-// Estado do diálogo
 const showDialog = ref(false)
 const showSaveDialog = ref(false)
 const viewName = ref('')
 const saveError = ref('')
 
-// Estado de confirmação de delete
 const deleteConfirmId = ref<string | null>(null)
 
-/**
- * Abre o diálogo de views salvas
- */
 function openDialog(): void {
   showDialog.value = true
 }
 
-/**
- * Abre o diálogo para salvar view atual
- */
 function openSaveDialog(): void {
   viewName.value = ''
   saveError.value = ''
   showSaveDialog.value = true
 }
 
-/**
- * Salva a view atual
- */
 function handleSaveView(): void {
   const name = viewName.value.trim()
 
@@ -59,45 +47,29 @@ function handleSaveView(): void {
   viewName.value = ''
 }
 
-/**
- * Aplica uma view salva
- */
 function handleApplyView(id: string): void {
   const viewFilters = applyView(id)
   if (viewFilters) {
-    // O composable useFilters já está sincronizado, então modificamos direto
     Object.assign(filters.value, viewFilters)
     showDialog.value = false
   }
 }
 
-/**
- * Confirma delete de uma view
- */
 function confirmDelete(id: string): void {
   deleteConfirmId.value = id
 }
 
-/**
- * Cancela delete
- */
 function cancelDelete(): void {
   deleteConfirmId.value = null
 }
 
-/**
- * Deleta uma view
- */
 function handleDeleteView(id: string): void {
   deleteView(id)
   deleteConfirmId.value = null
 }
 
-/**
- * Formata data para exibição (seguro para SSR)
- */
 function formatDate(isoDate: string): string {
-  if (!process.client) return ''
+  if (!import.meta.client) return ''
   
   const date = new Date(isoDate)
   return new Intl.DateTimeFormat('pt-BR', {
@@ -108,9 +80,6 @@ function formatDate(isoDate: string): string {
   }).format(date)
 }
 
-/**
- * Gera descrição resumida dos filtros
- */
 function getFiltersSummary(view: any): string {
   const parts: string[] = []
 
@@ -135,7 +104,6 @@ function getFiltersSummary(view: any): string {
 
 <template>
   <div class="flex items-center gap-2">
-    <!-- Botão para abrir views salvas -->
     <Button
       v-if="hasViews"
       :label="`${sortedViews.length} ${sortedViews.length === 1 ? 'visualização' : 'visualizações'}`"
@@ -144,7 +112,6 @@ function getFiltersSummary(view: any): string {
       @click="openDialog"
     />
 
-    <!-- Botão para salvar view atual -->
     <Button
       label="Salvar visualização"
       icon="pi pi-save"
@@ -152,7 +119,6 @@ function getFiltersSummary(view: any): string {
       @click="openSaveDialog"
     />
 
-    <!-- Diálogo de views salvas -->
     <Dialog
       v-model:visible="showDialog"
       header="Visualizações Salvas"
@@ -228,7 +194,6 @@ function getFiltersSummary(view: any): string {
       </Message>
     </Dialog>
 
-    <!-- Diálogo para salvar nova view -->
     <Dialog
       v-model:visible="showSaveDialog"
       header="Salvar Visualização"

@@ -1,11 +1,7 @@
 import type { DateRange, PeriodPreset } from '@/types/filters'
 
-// Constante local para evitar dependência circular
 const TIME_SUFFIX = 'T00:00:00'
 
-/**
- * Formata uma data para o padrão ISO (YYYY-MM-DD)
- */
 export function formatToISODate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -13,9 +9,6 @@ export function formatToISODate(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
-/**
- * Formata uma data para exibição (DD/MM/YYYY)
- */
 export function formatToDisplayDate(isoDate: string): string {
   const date = new Date(isoDate + TIME_SUFFIX)
   const day = String(date.getDate()).padStart(2, '0')
@@ -24,34 +17,22 @@ export function formatToDisplayDate(isoDate: string): string {
   return `${day}/${month}/${year}`
 }
 
-/**
- * Retorna a data de hoje em formato ISO
- */
 export function getToday(): string {
   return formatToISODate(new Date())
 }
 
-/**
- * Retorna a data de X dias atrás
- */
 export function getDaysAgo(days: number): string {
   const date = new Date()
   date.setDate(date.getDate() - days)
   return formatToISODate(date)
 }
 
-/**
- * Retorna o primeiro dia do mês atual (Month to Date)
- */
 export function getMonthStart(): string {
   const date = new Date()
   date.setDate(1)
   return formatToISODate(date)
 }
 
-/**
- * Retorna o primeiro dia do ano atual (Year to Date)
- */
 export function getYearStart(): string {
   const date = new Date()
   date.setMonth(0)
@@ -59,9 +40,6 @@ export function getYearStart(): string {
   return formatToISODate(date)
 }
 
-/**
- * Calcula o range de datas baseado no preset
- */
 export function getDateRangeFromPreset(preset: PeriodPreset): DateRange {
   const today = getToday()
 
@@ -90,9 +68,6 @@ export function getDateRangeFromPreset(preset: PeriodPreset): DateRange {
   }
 }
 
-/**
- * Valida se uma data está no formato ISO válido
- */
 export function isValidISODate(dateString: string): boolean {
   if (!dateString || typeof dateString !== 'string') return false
   
@@ -103,9 +78,6 @@ export function isValidISODate(dateString: string): boolean {
   return !isNaN(date.getTime())
 }
 
-/**
- * Valida se um range de datas é válido
- */
 export function isValidDateRange(range: DateRange): boolean {
   if (!range || typeof range !== 'object') {
     return false
@@ -121,9 +93,6 @@ export function isValidDateRange(range: DateRange): boolean {
   return start <= end
 }
 
-/**
- * Calcula a diferença em dias entre duas datas
- */
 export function getDaysDifference(start: string, end: string): number {
   const startDate = new Date(start + TIME_SUFFIX)
   const endDate = new Date(end + TIME_SUFFIX)

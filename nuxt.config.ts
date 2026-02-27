@@ -37,7 +37,6 @@ export default defineNuxtConfig({
     transpile: ['primevue', 'echarts'],
   },
 
-  // Otimização de imports client/server
   optimization: {
     treeShake: {
       composables: {
@@ -58,7 +57,6 @@ export default defineNuxtConfig({
 
   ssr: true,
 
-  // Configurações para melhorar hidratação
   experimental: {
     payloadExtraction: false,
   },
@@ -71,7 +69,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // Desabilita inlining de estilos para evitar mismatch
   features: {
     inlineStyles: false,
   },

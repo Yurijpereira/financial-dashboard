@@ -19,7 +19,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const isClient = ref(false)
 
-// Constantes
 const PERCENTAGE_PRECISION = 1
 const TREND_THRESHOLD = 0
 
@@ -51,7 +50,6 @@ function getTrendIcon(trend: number | null): string {
   return trend >= 0 ? '↑' : '↓'
 }
 
-// Função segura para formatação de números
 function formatNumber(value: number): string {
   if (!isClient.value) return String(value)
   return value.toLocaleString('pt-BR')
@@ -66,20 +64,16 @@ function formatNumber(value: number): string {
       class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
     >
       <div class="flex flex-col h-full">
-        <!-- Label -->
         <div class="text-sm text-gray-600 mb-3">
           {{ metric.label }}
         </div>
 
-        <!-- Value and Progress -->
         <div class="flex-1">
-          <!-- Percentage -->
           <div class="flex items-baseline gap-2 mb-2">
             <span class="text-2xl font-bold text-gray-900">
               {{ formatPercentage(calculatePercentage(metric.value, metric.total)) }}
             </span>
             
-            <!-- Trend -->
             <span
               v-if="metric.previousValue !== undefined"
               :class="getTrendColor(calculateTrend(
@@ -103,7 +97,6 @@ function formatNumber(value: number): string {
             </span>
           </div>
 
-          <!-- Progress Bar -->
           <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
             <div
               class="bg-emerald-600 h-2 rounded-full transition-all duration-500 ease-out"
@@ -111,7 +104,6 @@ function formatNumber(value: number): string {
             />
           </div>
 
-          <!-- Count -->
           <div class="text-xs text-gray-500">
             {{ formatNumber(metric.value) }} de {{ formatNumber(metric.total) }}
           </div>
@@ -119,7 +111,6 @@ function formatNumber(value: number): string {
       </div>
     </div>
 
-    <!-- Loading State -->
     <div
       v-if="loading"
       class="col-span-full flex items-center justify-center py-8"
