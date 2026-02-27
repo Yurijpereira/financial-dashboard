@@ -1,5 +1,4 @@
 export default defineEventHandler((event) => {
-  // Obtém os query params dos filtros
   const query = getQuery(event)
   const startDate = query.startDate as string | undefined
   const endDate = query.endDate as string | undefined
@@ -8,17 +7,12 @@ export default defineEventHandler((event) => {
   const products = query.products ? (query.products as string).split(',') : []
   const compareWithPrevious = query.compareWithPrevious === 'true'
 
-  // Log para debug (em produção, usar logger apropriado)
   console.log('API Filters:', { startDate, endDate, customers, regions, products, compareWithPrevious })
 
-  // Em produção, aqui faria queries no banco de dados com os filtros
-  // Por ora, retornamos dados mockados que variam baseado nos filtros
 
-  // Simula variação nos dados baseado nos filtros aplicados
   const hasFilters = customers.length > 0 || regions.length > 0 || products.length > 0
   const filterMultiplier = hasFilters ? 0.7 : 1 // Reduz 30% se houver filtros ativos
 
-  // Dados do período anterior (para comparação) - 15% menores em média
   const previousMultiplier = 0.85
 
   return {

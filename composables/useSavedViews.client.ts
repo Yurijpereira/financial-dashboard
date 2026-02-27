@@ -2,9 +2,6 @@ import type { SavedView } from '@/types/filters'
 
 const STORAGE_KEY = 'financial-dashboard-saved-views'
 
-/**
- * Carrega saved views do localStorage (client-only)
- */
 export function loadViewsFromStorage(): SavedView[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -16,9 +13,6 @@ export function loadViewsFromStorage(): SavedView[] {
   }
 }
 
-/**
- * Salva views no localStorage (client-only)
- */
 export function saveViewsToStorage(views: SavedView[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(views))

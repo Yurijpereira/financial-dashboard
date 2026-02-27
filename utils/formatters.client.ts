@@ -1,11 +1,4 @@
-/**
- * Formatadores que dependem de Intl (client-only)
- * Estes formatadores NÃO devem ser usados no servidor
- */
 
-/**
- * Formata números para moeda BRL
- */
 export function formatCurrencyBRL(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -14,25 +7,20 @@ export function formatCurrencyBRL(value: number): string {
   }).format(value)
 }
 
-/**
- * Formata números inteiros
- */
 export function formatInteger(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     maximumFractionDigits: 0,
   }).format(value)
 }
 
-/**
- * Formata números com locale pt-BR
- */
 export function formatNumber(value: number): string {
   return value.toLocaleString('pt-BR')
 }
 
-/**
- * Formata data para exibição
- */
+export function formatPercentageClient(value: number): string {
+  return `${value.toFixed(1)}%`
+}
+
 export function formatDateTime(isoDate: string): string {
   const date = new Date(isoDate)
   return new Intl.DateTimeFormat('pt-BR', {

@@ -8,13 +8,11 @@ import {
   hydrate,
   dehydrate,
 } from '@tanstack/vue-query'
-// Nuxt 3 app aliases
 import { useState } from '#app'
 
 export default defineNuxtPlugin((nuxt) => {
   const vueQueryState = useState<DehydratedState | null>('vue-query')
 
-  // Modify your Vue Query global settings here
   const queryClient = new QueryClient({
     defaultOptions: { 
       queries: { 
@@ -32,14 +30,13 @@ export default defineNuxtPlugin((nuxt) => {
 
   nuxt.vueApp.use(VueQueryPlugin, options)
 
-  if (process.server) {
+  if (import.meta.server) {
     nuxt.hooks.hook('app:rendered', () => {
       vueQueryState.value = dehydrate(queryClient)
     })
   }
 
-  if (process.client) {
-    // Hydrate apenas se houver estado e apenas uma vez
+  if (import.meta.client) {
     nuxt.hooks.hook('app:mounted', () => {
       if (vueQueryState.value) {
         hydrate(queryClient, vueQueryState.value)

@@ -3,7 +3,6 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import { definePreset } from '@primevue/themes'
 
-// Import PrimeVue components
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
@@ -35,7 +34,6 @@ const CustomPreset = definePreset(Aura, {
 })
 
 export default defineNuxtPlugin((nuxtApp) => {
-  // Configure PrimeVue with theme
   nuxtApp.vueApp.use(PrimeVue, {
     ripple: true,
     theme: {
@@ -50,7 +48,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     },
   })
 
-  // Register components globally
   nuxtApp.vueApp.component('Button', Button)
   nuxtApp.vueApp.component('Card', Card)
   nuxtApp.vueApp.component('Dropdown', Dropdown)

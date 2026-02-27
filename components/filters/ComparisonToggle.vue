@@ -5,26 +5,19 @@ import { getDaysDifference, formatToDisplayDate } from '@/utils/dateHelpers'
 
 const { filters, toggleCompareWithPrevious } = useFilters()
 
-/**
- * Calcula o período anterior baseado no período atual
- */
 const previousPeriod = computed(() => {
   const currentRange = filters.value.dateRange
   const daysDiff = getDaysDifference(currentRange.start, currentRange.end)
 
-  // Calcula o período anterior com a mesma duração usando string manipulation
   const [year, month, day] = currentRange.start.split('-').map(Number)
   const startDate = new Date(year!, month! - 1, day!)
   
-  // Subtrai 1 dia para obter o fim do período anterior
   const previousEndDate = new Date(startDate)
   previousEndDate.setDate(previousEndDate.getDate() - 1)
   
-  // Subtrai a duração do período para obter o início
   const previousStartDate = new Date(previousEndDate)
   previousStartDate.setDate(previousStartDate.getDate() - daysDiff)
   
-  // Formata para ISO
   const previousEnd = previousEndDate.getFullYear() + '-' + 
     String(previousEndDate.getMonth() + 1).padStart(2, '0') + '-' + 
     String(previousEndDate.getDate()).padStart(2, '0')
@@ -40,9 +33,6 @@ const previousPeriod = computed(() => {
   }
 })
 
-/**
- * Descrição do período de comparação
- */
 const comparisonDescription = computed(() => {
   const prev = previousPeriod.value
   if (!prev.start || !prev.end) return ''

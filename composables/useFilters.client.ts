@@ -3,9 +3,6 @@ import type { DashboardFilters } from '@/types/filters'
 
 const STORAGE_KEY = 'financial-dashboard-filters'
 
-/**
- * Carrega filtros do localStorage (client-only)
- */
 export function loadFiltersFromStorage(): DashboardFilters | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -17,9 +14,6 @@ export function loadFiltersFromStorage(): DashboardFilters | null {
   }
 }
 
-/**
- * Salva filtros no localStorage (client-only)
- */
 export function saveFiltersToStorage(filters: DashboardFilters): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
@@ -28,9 +22,6 @@ export function saveFiltersToStorage(filters: DashboardFilters): void {
   }
 }
 
-/**
- * Setup do watcher de localStorage (client-only)
- */
 export function setupFiltersStorageWatcher(
   getFilters: () => DashboardFilters
 ): void {

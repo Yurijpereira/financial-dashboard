@@ -6,21 +6,17 @@ import { formatToDisplayDate, getDaysDifference } from '@/utils/dateHelpers'
 
 const { filters, setDateRange } = useFilters()
 
-// Converte string ISO para Date para o DatePicker component
 const selectedDates = ref<Date[]>([])
 const isClient = ref(false)
 
-// Garante que só inicializa no cliente
 onMounted(() => {
   isClient.value = true
   updateSelectedDates(filters.value.dateRange)
 })
 
-// Função para atualizar as datas selecionadas
 function updateSelectedDates(range: DateRange) {
   if (!isClient.value) return
   
-  // Parse das datas ISO usando timezone local
   const [year1, month1, day1] = range.start.split('-').map(Number) as [number, number, number]
   const [year2, month2, day2] = range.end.split('-').map(Number) as [number, number, number]
   
@@ -30,7 +26,6 @@ function updateSelectedDates(range: DateRange) {
   selectedDates.value = [startDate, endDate]
 }
 
-// Inicializa as datas selecionadas
 watch(
   () => filters.value.dateRange,
   (range) => {
@@ -39,21 +34,18 @@ watch(
   { flush: 'post' }
 )
 
-// Quando o usuário seleciona datas no DatePicker
 function handleDateSelect(dates: Date | Date[] | (Date | null)[] | null | undefined): void {
   if (!dates || !Array.isArray(dates) || dates.length !== 2) return
 
   const [start, end] = dates
   if (!start || !end) return
 
-  // Formata para ISO string (YYYY-MM-DD) usando timezone local
   const startISO = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`
   const endISO = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
 
   setDateRange({ start: startISO, end: endISO })
 }
 
-// Informações sobre o período selecionado
 const periodInfo = computed(() => {
   const range = filters.value.dateRange
   const days = getDaysDifference(range.start, range.end) + 1

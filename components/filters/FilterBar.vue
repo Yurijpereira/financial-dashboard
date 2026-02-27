@@ -21,11 +21,9 @@ const {
 
 const { loadFiltersFromUrl, watchFiltersForUrlSync } = useFiltersUrlSync()
 
-// Estado de expansão das seções
 const showAdvancedFilters = ref(false)
 const isClient = ref(false)
 
-// Opções mockadas (em produção viriam da API)
 const customerOptions: FilterOption[] = [
   { value: 'c_1', label: 'Tech Solutions Brasil' },
   { value: 'c_2', label: 'Investimentos LTDA.' },
@@ -53,7 +51,6 @@ const productOptions: FilterOption[] = [
   { value: 'hardware', label: 'Hardware' },
 ]
 
-// Computed getter/setter para evitar fonte de verdade duplicada
 const selectedCustomers = computed({
   get: () => filters.value.customers,
   set: (value: string[]) => setCustomers(value),
@@ -77,15 +74,12 @@ function handleReset(): void {
   resetFilters()
 }
 
-// Carrega filtros da URL no mount e sincroniza mudanças (apenas no cliente)
 onMounted(() => {
   isClient.value = true
   
-  if (process.client) {
-    // Carrega filtros da URL
+  if (import.meta.client) {
     loadFiltersFromUrl()
     
-    // Inicia sincronização com a URL (com debounce para evitar loops)
     watchFiltersForUrlSync(() => filters.value, { debounce: 500 })
   }
 })
@@ -95,7 +89,6 @@ onMounted(() => {
   <Card class="border border-gray-200">
     <template #content>
       <div class="flex flex-col gap-6">
-        <!-- Cabeçalho -->
         <div class="flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-center gap-2">
             <i class="pi pi-filter text-xl text-gray-600" />
@@ -122,7 +115,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Período Rápido -->
         <div class="flex flex-col gap-3">
           <label class="text-sm font-medium text-gray-700">
             Período
@@ -130,7 +122,6 @@ onMounted(() => {
           <QuickPeriodButtons />
         </div>
 
-        <!-- Date Range Picker -->
         <div class="flex flex-col gap-3">
           <label class="text-sm font-medium text-gray-700">
             Intervalo personalizado
@@ -138,13 +129,10 @@ onMounted(() => {
           <DateRangePicker />
         </div>
 
-        <!-- Comparação de Períodos -->
         <ComparisonToggle />
 
-        <!-- Divisor -->
         <div class="border-t border-gray-200" />
 
-        <!-- Botão Filtros Avançados -->
         <Button
           :label="showAdvancedFilters ? 'Ocultar filtros avançados' : 'Mostrar filtros avançados'"
           :icon="showAdvancedFilters ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
@@ -152,7 +140,6 @@ onMounted(() => {
           @click="toggleAdvancedFilters"
         />
 
-        <!-- Filtros Avançados -->
         <transition
           name="fade"
           mode="out-in"
@@ -161,7 +148,6 @@ onMounted(() => {
             v-if="showAdvancedFilters"
             class="flex flex-col gap-4 pt-2"
           >
-            <!-- Clientes -->
             <div class="flex flex-col gap-2">
               <label class="text-sm font-medium text-gray-700">
                 Clientes
@@ -177,7 +163,6 @@ onMounted(() => {
               />
             </div>
 
-            <!-- Regiões -->
             <div class="flex flex-col gap-2">
               <label class="text-sm font-medium text-gray-700">
                 Regiões
@@ -193,7 +178,6 @@ onMounted(() => {
               />
             </div>
 
-            <!-- Produtos -->
             <div class="flex flex-col gap-2">
               <label class="text-sm font-medium text-gray-700">
                 Produtos/Serviços
