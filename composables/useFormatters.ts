@@ -1,15 +1,3 @@
-/**
- * SSR-safe formatting composable.
- *
- * Intl.NumberFormat is available in Node.js and in all modern browsers.
- * Using it unconditionally on both server and client guarantees that the
- * HTML produced during SSR matches the HTML produced during client
- * hydration, preventing hydration mismatches.
- *
- * Do NOT guard these functions with `isClient` / `onMounted` checks —
- * doing so causes the server to emit a different string than the client
- * would render, which is the exact definition of a hydration mismatch.
- */
 export function useFormatters() {
   function formatCurrencyBRL(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
