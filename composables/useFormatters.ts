@@ -1,20 +1,14 @@
 export function useFormatters() {
-  function formatCurrencyBRL(value: number): string {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      maximumFractionDigits: 2,
-    }).format(value)
-  }
-
   function formatInteger(value: number): string {
-    return new Intl.NumberFormat('pt-BR', {
-      maximumFractionDigits: 0,
-    }).format(value)
+    return Math.round(value)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   }
 
-  function formatNumber(value: number): string {
-    return new Intl.NumberFormat('pt-BR').format(value)
+  function formatCurrencyBRL(value: number): string {
+    const [intPart, decPart] = value.toFixed(2).split('.')
+    const intFormatted = (intPart ?? '0').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    return `R$\u00a0${intFormatted},${decPart ?? '00'}`
   }
 
   function formatPercentage(value: number, decimals = 1): string {
@@ -34,7 +28,6 @@ export function useFormatters() {
   return {
     formatCurrencyBRL,
     formatInteger,
-    formatNumber,
     formatPercentage,
     formatDateTime,
   }

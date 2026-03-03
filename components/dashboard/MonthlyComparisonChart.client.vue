@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import type { EChartsType } from 'echarts'
+import { useFormatters } from '@/composables/useFormatters'
 
 interface MonthlyData {
   month: string
@@ -20,18 +21,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const chartContainer = ref<HTMLDivElement | null>(null)
-const isClient = ref(false)
 let chartInstance: EChartsType | null = null
 
-function formatCurrency(value: number): string {
-  if (!isClient.value) return `R$ ${value}`
-  
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
+const { formatCurrencyBRL } = useFormatters()
 
 function initChart() {
   if (!chartContainer.value) return
@@ -86,7 +78,7 @@ function updateChart() {
               <div style="display: flex; align-items: center; margin-bottom: 3px;">
                 <span style="display: inline-block; width: 10px; height: 10px; background: ${color}; border-radius: 2px; margin-right: 6px;"></span>
                 <span style="color: #6b7280; margin-right: 8px;">${param.seriesName}:</span>
-                <span style="font-weight: 600;">${formatCurrency(param.value)}</span>
+                <span style="font-weight: 600;">${formatCurrencyBRL(param.value)}</span>
               </div>`
           } else if (param.seriesName === 'Pedidos') {
             tooltip += `
@@ -226,18 +218,13 @@ function handleResize() {
 }
 
 onMounted(async () => {
-  isClient.value = true
   await nextTick()
   initChart()
-  if (typeof window !== 'undefined') {
-    window.addEventListener('resize', handleResize)
-  }
+  window.addEventListener('resize', handleResize)
 })
 
 onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', handleResize)
-  }
+  window.removeEventListener('resize', handleResize)
   chartInstance?.dispose()
 })
 
