@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import type { EChartsType } from 'echarts'
+import { useFormatters } from '@/composables/useFormatters'
 
 interface SalesDataPoint {
   date: string
@@ -18,22 +19,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const chartContainer = ref<HTMLDivElement | null>(null)
-const isClient = ref(false)
 let chartInstance: EChartsType | null = null
 
-function formatCurrency(value: number): string {
-  if (!isClient.value) return `R$ ${value}`
-  
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
+const { formatCurrencyBRL } = useFormatters()
 
 function formatDate(dateString: string): string {
-  if (!isClient.value) return dateString
-  
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -84,7 +74,7 @@ function updateChart() {
           <div style="font-size: 12px;">
             <div style="color: #6b7280; margin-bottom: 4px;">${param.name}</div>
             <div style="font-weight: 600; color: #059669; font-size: 14px;">
-              ${formatCurrency(param.value)}
+              ${formatCurrencyBRL(param.value)}
             </div>
           </div>
         `
@@ -176,18 +166,13 @@ function handleResize() {
 }
 
 onMounted(async () => {
-  isClient.value = true
   await nextTick()
   initChart()
-  if (typeof window !== 'undefined') {
-    window.addEventListener('resize', handleResize)
-  }
+  window.addEventListener('resize', handleResize)
 })
 
 onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', handleResize)
-  }
+  window.removeEventListener('resize', handleResize)
   chartInstance?.dispose()
 })
 

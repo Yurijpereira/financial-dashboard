@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import type { EChartsType } from 'echarts'
+import { useFormatters } from '@/composables/useFormatters'
 
 interface CustomerData {
   id: string
@@ -20,18 +21,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const chartContainer = ref<HTMLDivElement | null>(null)
-const isClient = ref(false)
 let chartInstance: EChartsType | null = null
 
-function formatCurrency(value: number): string {
-  if (!isClient.value) return `R$ ${value}`
-  
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
+const { formatCurrencyBRL } = useFormatters()
 
 function formatPercentage(value: number): string {
   return `${value.toFixed(1)}%`
@@ -80,7 +72,7 @@ function updateChart() {
           <div style="font-size: 12px;">
             <div style="font-weight: 600; margin-bottom: 4px;">${params.name}</div>
             <div style="color: #6b7280; margin-bottom: 2px;">
-              ${formatCurrency(params.value)}
+              ${formatCurrencyBRL(params.value)}
             </div>
             <div style="color: #6b7280; font-size: 11px;">
               ${params.data.orders} pedidos • ${formatPercentage(params.data.percentage)}
@@ -151,18 +143,13 @@ function handleResize() {
 }
 
 onMounted(async () => {
-  isClient.value = true
   await nextTick()
   initChart()
-  if (typeof window !== 'undefined') {
-    window.addEventListener('resize', handleResize)
-  }
+  window.addEventListener('resize', handleResize)
 })
 
 onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', handleResize)
-  }
+  window.removeEventListener('resize', handleResize)
   chartInstance?.dispose()
 })
 

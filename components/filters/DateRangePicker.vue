@@ -7,23 +7,19 @@ import { formatToDisplayDate, getDaysDifference } from '@/utils/dateHelpers'
 const { filters, setDateRange } = useFilters()
 
 const selectedDates = ref<Date[]>([])
-const isClient = ref(false)
 
 onMounted(() => {
-  isClient.value = true
   updateSelectedDates(filters.value.dateRange)
 })
 
 function updateSelectedDates(range: DateRange) {
-  if (!isClient.value) return
-  
   const [year1, month1, day1] = range.start.split('-').map(Number) as [number, number, number]
   const [year2, month2, day2] = range.end.split('-').map(Number) as [number, number, number]
-  
-  const startDate = new Date(year1, month1 - 1, day1)
-  const endDate = new Date(year2, month2 - 1, day2)
-  
-  selectedDates.value = [startDate, endDate]
+
+  selectedDates.value = [
+    new Date(year1, month1 - 1, day1),
+    new Date(year2, month2 - 1, day2),
+  ]
 }
 
 watch(
@@ -62,26 +58,19 @@ const periodInfo = computed(() => {
 <template>
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-3">
-      <ClientOnly>
-        <DatePicker
-          v-if="isClient"
-          v-model="selectedDates"
-          selection-mode="range"
-          :manual-input="false"
-          date-format="dd/mm/yy"
-          show-icon
-          icon-display="input"
-          placeholder="Selecione o período"
-          class="w-full max-w-sm"
-          @update:model-value="handleDateSelect"
-        />
-        <template #fallback>
-          <div class="w-full max-w-sm h-10 bg-gray-100 animate-pulse rounded"></div>
-        </template>
-      </ClientOnly>
+      <DatePicker
+        v-model="selectedDates"
+        selection-mode="range"
+        :manual-input="false"
+        date-format="dd/mm/yy"
+        show-icon
+        icon-display="input"
+        placeholder="Selecione o período"
+        class="w-full max-w-sm"
+        @update:model-value="handleDateSelect"
+      />
 
       <div
-        v-if="isClient"
         class="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm"
       >
         <i class="pi pi-info-circle text-gray-500" />
@@ -95,7 +84,7 @@ const periodInfo = computed(() => {
     </div>
 
     <p
-      v-if="isClient && filters.preset === 'custom'"
+      v-if="filters.preset === 'custom'"
       class="text-xs text-gray-500 flex items-center gap-1"
     >
       <i class="pi pi-calendar" />

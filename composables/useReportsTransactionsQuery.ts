@@ -1,4 +1,6 @@
 import { computed, type Ref } from 'vue'
+import { onServerPrefetch } from 'vue'
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/vue-query'
 import type { ReportSortField, ReportSortOrder, ReportsTransactionsResponse } from '@/types/reports'
 import { useFilters } from '@/composables/useFilters'
 
@@ -13,6 +15,8 @@ type UseReportsTransactionsQueryOptions = {
 
 export function useReportsTransactionsQuery(options: UseReportsTransactionsQueryOptions) {
   const { apiQueryParams } = useFilters()
+  const queryClient = useQueryClient()
+  const requestFetch = import.meta.server ? useRequestFetch() : $fetch
 
   const queryParams = computed(() => {
     const params: Record<string, string> = {
@@ -31,21 +35,45 @@ export function useReportsTransactionsQuery(options: UseReportsTransactionsQuery
     return params
   })
 
-  const queryKey = computed(() => {
-    return `reports-transactions-${JSON.stringify(queryParams.value)}`
+  const serializedQueryParams = computed(() => {
+    return JSON.stringify(queryParams.value)
   })
 
-  const requestState = useFetch<ReportsTransactionsResponse>('/api/reports/transactions', {
-    key: queryKey,
-    query: queryParams,
-    immediate: true,
-    getCachedData: (key) => {
-      return useNuxtApp().payload.data[key] ?? useNuxtApp().static.data[key]
-    },
+  const queryKey = computed(() => {
+    return ['reports-transactions', serializedQueryParams.value] as const
+  })
+
+  const queryFn = async (): Promise<ReportsTransactionsResponse> => {
+    return requestFetch<ReportsTransactionsResponse>('/api/reports/transactions', {
+      query: queryParams.value,
+    })
+  }
+
+  if (import.meta.server) {
+    onServerPrefetch(async () => {
+      await queryClient.prefetchQuery({
+        queryKey: queryKey.value,
+        queryFn,
+      })
+    })
+  }
+
+  const query = useQuery<ReportsTransactionsResponse, Error>({
+    queryKey,
+    queryFn,
+    placeholderData: keepPreviousData,
+  })
+
+  const pending = computed(() => {
+    return query.isPending.value
   })
 
   return {
-    ...requestState,
+    data: query.data,
+    pending,
+    isFetching: query.isFetching,
+    error: query.error,
+    refresh: query.refetch,
     queryParams,
   }
 }

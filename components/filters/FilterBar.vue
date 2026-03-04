@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import QuickPeriodButtons from '@/components/filters/QuickPeriodButtons.vue'
 import DateRangePicker from '@/components/filters/DateRangePicker.vue'
 import ComparisonToggle from '@/components/filters/ComparisonToggle.vue'
@@ -17,12 +17,12 @@ const {
   setRegions,
   setProducts,
   resetFilters,
+  initFromStorage,
 } = useFilters()
 
 const { loadFiltersFromUrl, watchFiltersForUrlSync } = useFiltersUrlSync()
 
 const showAdvancedFilters = ref(false)
-const isClient = ref(false)
 
 const customerOptions: FilterOption[] = [
   { value: 'c_1', label: 'Tech Solutions Brasil' },
@@ -75,13 +75,9 @@ function handleReset(): void {
 }
 
 onMounted(() => {
-  isClient.value = true
-  
-  if (import.meta.client) {
-    loadFiltersFromUrl()
-    
-    watchFiltersForUrlSync(() => filters.value, { debounce: 500 })
-  }
+  initFromStorage()
+  loadFiltersFromUrl()
+  watchFiltersForUrlSync(() => filters.value, { debounce: 500 })
 })
 </script>
 

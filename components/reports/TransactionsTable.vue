@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useFormatters } from '@/composables/useFormatters'
 import type { DataTablePageEvent, DataTableSortEvent } from 'primevue/datatable'
 import type {
   ReportSortField,
@@ -34,6 +35,8 @@ const primeSortOrder = computed(() => {
   return props.sortOrder === 'asc' ? 1 : -1
 })
 
+const { formatCurrencyBRL: formatCurrency } = useFormatters()
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -42,14 +45,6 @@ function formatDate(value: string): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value))
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 2,
-  }).format(value)
 }
 
 function getStatusClass(status: ReportTransactionStatus): string {

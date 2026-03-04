@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useFormatters } from '@/composables/useFormatters'
 import FilterBar from '@/components/filters/FilterBar.vue'
 import ReportsAdvancedFilters from '@/components/reports/ReportsAdvancedFilters.vue'
 import TransactionsCategoryChart from '@/components/reports/TransactionsCategoryChart.client.vue'
@@ -77,13 +78,7 @@ watch([total, pageSize], () => {
   }
 })
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    maximumFractionDigits: 2,
-  }).format(value)
-}
+const { formatCurrencyBRL: formatCurrency } = useFormatters()
 
 function handleAdvancedFiltersUpdate(nextFilters: ReportsAdvancedFiltersState): void {
   setAdvancedFilters(nextFilters)
@@ -236,7 +231,7 @@ async function handleExportPdf(): Promise<void> {
       <template #title>
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold">Transacoes detalhadas</h2>
-          <span class="text-sm text-gray-500">
+          <span class="text-sm text-gray-500 mr-5">
             {{ hasActiveAdvancedFilters ? 'Filtros avancados ativos' : 'Visao geral' }}
           </span>
         </div>
@@ -252,19 +247,21 @@ async function handleExportPdf(): Promise<void> {
           </p>
         </div>
 
-        <TransactionsTable
-          :items="transactions"
-          :loading="pending"
-          :total="total"
-          :page="page"
-          :page-size="pageSize"
-          :sort-field="sortField"
-          :sort-order="sortOrder"
-          @update:page="(value) => (page = value)"
-          @update:page-size="(value) => (pageSize = value)"
-          @update:sort-field="(value) => (sortField = value)"
-          @update:sort-order="(value) => (sortOrder = value)"
-        />
+        <ClientOnly>
+          <TransactionsTable
+            :items="transactions"
+            :loading="pending"
+            :total="total"
+            :page="page"
+            :page-size="pageSize"
+            :sort-field="sortField"
+            :sort-order="sortOrder"
+            @update:page="(value) => (page = value)"
+            @update:page-size="(value) => (pageSize = value)"
+            @update:sort-field="(value) => (sortField = value)"
+            @update:sort-order="(value) => (sortOrder = value)"
+          />
+        </ClientOnly>
       </template>
     </Card>
   </section>

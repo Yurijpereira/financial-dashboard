@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { useFormatters } from '@/composables/useFormatters'
 
 interface ConversionMetric {
   label: string
@@ -17,14 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
 })
 
-const isClient = ref(false)
-
-const PERCENTAGE_PRECISION = 1
-const TREND_THRESHOLD = 0
-
-onMounted(() => {
-  isClient.value = true
-})
+const { formatInteger } = useFormatters()
 
 function calculatePercentage(value: number, total: number): number {
   if (total === 0) return 0
@@ -48,11 +41,6 @@ function getTrendColor(trend: number | null): string {
 function getTrendIcon(trend: number | null): string {
   if (trend === null) return ''
   return trend >= 0 ? '↑' : '↓'
-}
-
-function formatNumber(value: number): string {
-  if (!isClient.value) return String(value)
-  return value.toLocaleString('pt-BR')
 }
 </script>
 
@@ -105,7 +93,7 @@ function formatNumber(value: number): string {
           </div>
 
           <div class="text-xs text-gray-500">
-            {{ formatNumber(metric.value) }} de {{ formatNumber(metric.total) }}
+            {{ formatInteger(metric.value) }} de {{ formatInteger(metric.total) }}
           </div>
         </div>
       </div>
