@@ -16,14 +16,10 @@ async function handleLogout(): Promise<void> {
 </script>
 
 <template>
-  <header
-    class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200"
-  >
+  <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
     <div class="flex flex-col gap-1">
       <span class="text-lg font-semibold">Financial Dashboard</span>
-      <span class="text-sm text-gray-500">
-        Visão geral de desempenho financeiro
-      </span>
+      <span class="text-sm text-gray-500"> Visão geral de desempenho financeiro </span>
     </div>
 
     <div class="flex items-center gap-3">

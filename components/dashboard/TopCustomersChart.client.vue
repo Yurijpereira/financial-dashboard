@@ -34,7 +34,7 @@ function initChart() {
 
   const width = chartContainer.value.clientWidth
   const height = chartContainer.value.clientHeight
-  
+
   if (width === 0 || height === 0) {
     setTimeout(() => initChart(), 100)
     return
@@ -48,8 +48,8 @@ function updateChart() {
   if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
 
   const totalRevenue = props.data.reduce((sum, item) => sum + item.revenue, 0)
-  
-  const chartData = props.data.map(customer => ({
+
+  const chartData = props.data.map((customer) => ({
     name: customer.name,
     value: customer.revenue,
     percentage: (customer.revenue / totalRevenue) * 100,
@@ -92,7 +92,7 @@ function updateChart() {
       itemWidth: 12,
       itemHeight: 12,
       formatter: (name: string) => {
-        const item = chartData.find(dataPoint => dataPoint.name === name)
+        const item = chartData.find((dataPoint) => dataPoint.name === name)
         if (!item) return name
         return `${name}\n${formatPercentage(item.percentage)}`
       },
@@ -158,14 +158,17 @@ watch(() => props.loading, updateChart)
 </script>
 
 <template>
-  <div class="relative w-full" style="min-height: 300px; height: 300px;">
+  <div
+    class="relative w-full"
+    style="min-height: 300px; height: 300px"
+  >
     <div
       v-if="loading"
       class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
     >
       <p class="text-sm text-gray-500">Carregando gráfico...</p>
     </div>
-    
+
     <div
       ref="chartContainer"
       class="w-full h-full"

@@ -24,7 +24,6 @@ const { loadFiltersFromUrl, watchFiltersForUrlSync } = useFiltersUrlSync()
 
 const showAdvancedFilters = ref(false)
 
-// Load filter options from API (dynamic, tenant-aware)
 const { data: filterOptionsData } = useFetch<{
   customers: FilterOption[]
   regions: FilterOption[]
@@ -84,7 +83,7 @@ onMounted(() => {
           <div class="flex items-center gap-2 flex-wrap">
             <SavedViewsManager />
             <ShareFiltersButton />
-            
+
             <Button
               v-if="hasActiveFilters || filters.preset !== '30days'"
               label="Limpar filtros"
@@ -96,16 +95,12 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-col gap-3">
-          <label class="text-sm font-medium text-gray-700">
-            Período
-          </label>
+          <label class="text-sm font-medium text-gray-700"> Período </label>
           <QuickPeriodButtons />
         </div>
 
         <div class="flex flex-col gap-3">
-          <label class="text-sm font-medium text-gray-700">
-            Intervalo personalizado
-          </label>
+          <label class="text-sm font-medium text-gray-700"> Intervalo personalizado </label>
           <DateRangePicker />
         </div>
 
@@ -129,9 +124,7 @@ onMounted(() => {
             class="flex flex-col gap-4 pt-2"
           >
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">
-                Clientes
-              </label>
+              <label class="text-sm font-medium text-gray-700"> Clientes </label>
               <MultiSelect
                 v-model="selectedCustomers"
                 :options="customerOptions"
@@ -144,9 +137,7 @@ onMounted(() => {
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">
-                Regiões
-              </label>
+              <label class="text-sm font-medium text-gray-700"> Regiões </label>
               <MultiSelect
                 v-model="selectedRegions"
                 :options="regionOptions"
@@ -159,9 +150,7 @@ onMounted(() => {
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">
-                Produtos/Serviços
-              </label>
+              <label class="text-sm font-medium text-gray-700"> Produtos/Serviços </label>
               <MultiSelect
                 v-model="selectedProducts"
                 :options="productOptions"
@@ -182,7 +171,9 @@ onMounted(() => {
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .fade-enter-from {

@@ -8,10 +8,7 @@ export default defineNuxtConfig({
     },
   ],
 
-  css: [
-    'primeicons/primeicons.css',
-    '~/assets/scss/main.scss',
-  ],
+  css: ['primeicons/primeicons.css', '~/assets/scss/main.scss'],
 
   vite: {
     css: {
@@ -41,14 +38,18 @@ export default defineNuxtConfig({
     treeShake: {
       composables: {
         client: {
-          useFilters: ['loadFiltersFromStorage', 'saveFiltersToStorage', 'setupFiltersStorageWatcher'],
+          useFilters: [
+            'loadFiltersFromStorage',
+            'saveFiltersToStorage',
+            'setupFiltersStorageWatcher',
+          ],
           useSavedViews: ['loadViewsFromStorage', 'saveViewsToStorage'],
-        }
-      }
-    }
+        },
+      },
+    },
   },
 
-  modules: ['@pinia/nuxt', 'nuxt-auth-utils'],
+  modules: ['@pinia/nuxt', 'nuxt-auth-utils', '@nuxt/eslint'],
 
   typescript: {
     strict: true,
@@ -63,9 +64,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      ],
+      meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     },
   },
 

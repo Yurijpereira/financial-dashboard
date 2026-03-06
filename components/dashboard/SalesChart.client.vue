@@ -36,7 +36,7 @@ function initChart() {
 
   const width = chartContainer.value.clientWidth
   const height = chartContainer.value.clientHeight
-  
+
   if (width === 0 || height === 0) {
     setTimeout(() => initChart(), 100)
     return
@@ -49,8 +49,8 @@ function initChart() {
 function updateChart() {
   if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
 
-  const dates = props.data.map(item => formatDate(item.date))
-  const values = props.data.map(item => item.value)
+  const dates = props.data.map((item) => formatDate(item.date))
+  const values = props.data.map((item) => item.value)
 
   const option = {
     grid: {
@@ -181,14 +181,17 @@ watch(() => props.loading, updateChart)
 </script>
 
 <template>
-  <div class="relative w-full" style="min-height: 300px; height: 300px;">
+  <div
+    class="relative w-full"
+    style="min-height: 300px; height: 300px"
+  >
     <div
       v-if="loading"
       class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
     >
       <p class="text-sm text-gray-500">Carregando gráfico...</p>
     </div>
-    
+
     <div
       ref="chartContainer"
       class="w-full h-full"

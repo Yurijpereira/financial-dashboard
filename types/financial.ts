@@ -40,5 +40,6 @@ export type FinancialSummaryResponse = {
   salesSeries: SalesDataPoint[]
   topCustomers: CustomerData[]
   monthlyComparison: MonthlyComparisonData[]
-  conversionMetrics: ConversionMetric[]
+  /** Real count of PAID transactions in the period. Used by the client to estimate funnel stages. */
+  paidTransactionsCount: number
 }

@@ -16,10 +16,7 @@ function updateSelectedDates(range: DateRange) {
   const [year1, month1, day1] = range.start.split('-').map(Number) as [number, number, number]
   const [year2, month2, day2] = range.end.split('-').map(Number) as [number, number, number]
 
-  selectedDates.value = [
-    new Date(year1, month1 - 1, day1),
-    new Date(year2, month2 - 1, day2),
-  ]
+  selectedDates.value = [new Date(year1, month1 - 1, day1), new Date(year2, month2 - 1, day2)]
 }
 
 watch(
@@ -27,7 +24,7 @@ watch(
   (range) => {
     updateSelectedDates(range)
   },
-  { flush: 'post' }
+  { flush: 'post' },
 )
 
 function handleDateSelect(dates: Date | Date[] | (Date | null)[] | null | undefined): void {
@@ -77,9 +74,7 @@ const periodInfo = computed(() => {
         <span class="text-gray-700">
           <strong>{{ periodInfo.label }}</strong>
         </span>
-        <span class="text-gray-500">
-          ({{ periodInfo.start }} - {{ periodInfo.end }})
-        </span>
+        <span class="text-gray-500"> ({{ periodInfo.start }} - {{ periodInfo.end }}) </span>
       </div>
     </div>
 

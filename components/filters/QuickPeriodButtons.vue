@@ -37,9 +37,7 @@ function isActive(preset: PeriodPreset): boolean {
       :icon="period.icon"
       :class="[
         'text-sm',
-        isActive(period.value)
-          ? 'p-button-primary'
-          : 'p-button-outlined p-button-secondary',
+        isActive(period.value) ? 'p-button-primary' : 'p-button-outlined p-button-secondary',
       ]"
       @click="selectPeriod(period.value)"
     />

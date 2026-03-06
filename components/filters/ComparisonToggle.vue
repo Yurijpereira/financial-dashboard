@@ -11,19 +11,25 @@ const previousPeriod = computed(() => {
 
   const [year, month, day] = currentRange.start.split('-').map(Number)
   const startDate = new Date(year!, month! - 1, day!)
-  
+
   const previousEndDate = new Date(startDate)
   previousEndDate.setDate(previousEndDate.getDate() - 1)
-  
+
   const previousStartDate = new Date(previousEndDate)
   previousStartDate.setDate(previousStartDate.getDate() - daysDiff)
-  
-  const previousEnd = previousEndDate.getFullYear() + '-' + 
-    String(previousEndDate.getMonth() + 1).padStart(2, '0') + '-' + 
+
+  const previousEnd =
+    previousEndDate.getFullYear() +
+    '-' +
+    String(previousEndDate.getMonth() + 1).padStart(2, '0') +
+    '-' +
     String(previousEndDate.getDate()).padStart(2, '0')
-  
-  const previousStart = previousStartDate.getFullYear() + '-' + 
-    String(previousStartDate.getMonth() + 1).padStart(2, '0') + '-' + 
+
+  const previousStart =
+    previousStartDate.getFullYear() +
+    '-' +
+    String(previousStartDate.getMonth() + 1).padStart(2, '0') +
+    '-' +
     String(previousStartDate.getDate()).padStart(2, '0')
 
   return {
@@ -62,8 +68,8 @@ const comparisonDescription = computed(() => {
           v-if="filters.compareWithPrevious"
           class="text-xs text-gray-600 mt-1"
         >
-          Comparando com: <strong>{{ comparisonDescription }}</strong>
-          ({{ previousPeriod.days }} {{ previousPeriod.days === 1 ? 'dia' : 'dias' }})
+          Comparando com: <strong>{{ comparisonDescription }}</strong> ({{ previousPeriod.days }}
+          {{ previousPeriod.days === 1 ? 'dia' : 'dias' }})
         </p>
       </div>
 

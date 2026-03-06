@@ -14,7 +14,7 @@ function normalizeQueryValue(value: unknown): string {
 
 function hasSameQuery(
   currentQuery: Record<string, unknown>,
-  nextQuery: Record<string, string>
+  nextQuery: Record<string, string>,
 ): boolean {
   const currentKeys = Object.keys(currentQuery).sort()
   const nextKeys = Object.keys(nextQuery).sort()
@@ -69,7 +69,7 @@ function deserializeQueryToFilters(query: Record<string, any>): Partial<Dashboar
 
     if (query.start && query.end) {
       const dateRange = { start: query.start as string, end: query.end as string }
-      
+
       if (isValidDateRange(dateRange)) {
         filters.dateRange = dateRange
       }
@@ -115,7 +115,7 @@ export function useFiltersUrlSync() {
 
   let router: ReturnType<typeof useRouter> | null = null
   let route: ReturnType<typeof useRoute> | null = null
-  
+
   if (import.meta.client) {
     router = useRouter()
     route = useRoute()
@@ -123,14 +123,14 @@ export function useFiltersUrlSync() {
 
   function syncFiltersToUrl(filters: DashboardFilters, replace = true): void {
     if (!router || !route) return
-    
+
     const query = serializeFiltersToQuery(filters)
     if (hasSameQuery(route.query as Record<string, unknown>, query)) {
       return
     }
 
     const method = replace ? router.replace : router.push
-    
+
     method({
       query,
     }).catch((err) => {
@@ -142,11 +142,19 @@ export function useFiltersUrlSync() {
 
   function loadFiltersFromUrl(): Partial<DashboardFilters> | null {
     if (!route) return null
-    
+
     const urlFilters = deserializeQueryToFilters(route.query)
     if (urlFilters && Object.keys(urlFilters).length > 0) {
-      const { setDateRange, setPreset, setCustomers, setRegions, setProducts, setCompareWithPrevious, filters } = useFilters()
-      
+      const {
+        setDateRange,
+        setPreset,
+        setCustomers,
+        setRegions,
+        setProducts,
+        setCompareWithPrevious,
+        filters,
+      } = useFilters()
+
       if (urlFilters.dateRange) {
         setDateRange(urlFilters.dateRange)
       }
@@ -172,7 +180,7 @@ export function useFiltersUrlSync() {
   function getShareableUrl(filters: DashboardFilters): string {
     const query = serializeFiltersToQuery(filters)
     const queryString = new URLSearchParams(query).toString()
-    
+
     if (typeof window !== 'undefined') {
       const { protocol, host, pathname } = window.location
       return `${protocol}//${host}${pathname}?${queryString}`
@@ -198,7 +206,7 @@ export function useFiltersUrlSync() {
 
   function watchFiltersForUrlSync(
     getFilters: () => DashboardFilters,
-    options: { immediate?: boolean; debounce?: number } = {}
+    options: { immediate?: boolean; debounce?: number } = {},
   ): void {
     const { immediate = false, debounce = 300 } = options
 
@@ -215,7 +223,7 @@ export function useFiltersUrlSync() {
           syncFiltersToUrl(filters, true)
         }, debounce)
       },
-      { immediate, deep: true, flush: 'post' }
+      { immediate, deep: true, flush: 'post' },
     )
   }
 

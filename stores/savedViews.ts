@@ -4,9 +4,7 @@ import type { SavedView, SavedViewInput, DashboardFilters } from '@/types/filter
 
 const STORAGE_KEY = 'financial-dashboard-saved-views'
 
-const PERIOD_PRESETS = new Set([
-  'today', '7days', '30days', '90days', 'mtd', 'ytd', 'custom',
-])
+const PERIOD_PRESETS = new Set(['today', '7days', '30days', '90days', 'mtd', 'ytd', 'custom'])
 
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string')
@@ -58,13 +56,21 @@ export const useSavedViewsStore = defineStore('savedViews', () => {
         const parsed: unknown = JSON.parse(raw)
         views.value = (Array.isArray(parsed) ? parsed : []).filter(isSavedView)
       }
-    } catch {}
+    } catch {
+      // localStorage may be unavailable
+    }
 
-    watch(views, (val) => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
-      } catch {}
-    }, { deep: true, flush: 'post' })
+    watch(
+      views,
+      (val) => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
+        } catch {
+          // localStorage may be unavailable
+        }
+      },
+      { deep: true, flush: 'post' },
+    )
   }
 
   function createView(input: SavedViewInput): SavedView {

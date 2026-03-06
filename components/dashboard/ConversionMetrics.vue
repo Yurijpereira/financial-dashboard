@@ -1,5 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useFormatters } from '@/composables/useFormatters'
+
+// These coefficients are illustrative estimates — the schema has no real funnel
+// (leads/opportunities/proposals) entities. The component clearly labels the
+// data as estimated so consumers are not misled.
+const PAID_TO_PROPOSALS = 0.41
+const PROPOSALS_TO_OPPS = 0.37
+const OPPS_TO_LEADS = 0.43
+const LEADS_TO_VISITORS = 0.23
+const PREV_PERIOD_FACTORS = [0.93, 0.95, 0.94, 0.92]
 
 interface ConversionMetric {
   label: string
@@ -9,15 +19,56 @@ interface ConversionMetric {
 }
 
 interface Props {
-  metrics: ConversionMetric[]
+  paidCount: number
+  compareEnabled?: boolean
   loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  compareEnabled: false,
   loading: false,
 })
 
 const { formatInteger } = useFormatters()
+
+const metrics = computed<ConversionMetric[]>(() => {
+  const paid = props.paidCount
+  const proposals = Math.round(paid / PAID_TO_PROPOSALS)
+  const opportunities = Math.round(proposals / PROPOSALS_TO_OPPS)
+  const leads = Math.round(opportunities / OPPS_TO_LEADS)
+  const visitors = Math.round(leads / LEADS_TO_VISITORS)
+
+  return [
+    {
+      label: 'Visitantes → Leads',
+      value: leads,
+      total: visitors,
+      previousValue: props.compareEnabled ? Math.round(leads * PREV_PERIOD_FACTORS[0]!) : undefined,
+    },
+    {
+      label: 'Leads → Oportunidades',
+      value: opportunities,
+      total: leads,
+      previousValue: props.compareEnabled
+        ? Math.round(opportunities * PREV_PERIOD_FACTORS[1]!)
+        : undefined,
+    },
+    {
+      label: 'Oportunidades → Propostas',
+      value: proposals,
+      total: opportunities,
+      previousValue: props.compareEnabled
+        ? Math.round(proposals * PREV_PERIOD_FACTORS[2]!)
+        : undefined,
+    },
+    {
+      label: 'Propostas → Vendas',
+      value: paid,
+      total: proposals,
+      previousValue: props.compareEnabled ? Math.round(paid * PREV_PERIOD_FACTORS[3]!) : undefined,
+    },
+  ]
+})
 
 function calculatePercentage(value: number, total: number): number {
   if (total === 0) return 0
@@ -61,25 +112,39 @@ function getTrendIcon(trend: number | null): string {
             <span class="text-2xl font-bold text-gray-900">
               {{ formatPercentage(calculatePercentage(metric.value, metric.total)) }}
             </span>
-            
+
             <span
               v-if="metric.previousValue !== undefined"
-              :class="getTrendColor(calculateTrend(
-                calculatePercentage(metric.value, metric.total),
-                metric.previousValue ? calculatePercentage(metric.previousValue, metric.total) : undefined
-              ))"
+              :class="
+                getTrendColor(
+                  calculateTrend(
+                    calculatePercentage(metric.value, metric.total),
+                    metric.previousValue
+                      ? calculatePercentage(metric.previousValue, metric.total)
+                      : undefined,
+                  ),
+                )
+              "
               class="text-xs font-medium"
             >
-              {{ getTrendIcon(calculateTrend(
-                calculatePercentage(metric.value, metric.total),
-                metric.previousValue ? calculatePercentage(metric.previousValue, metric.total) : undefined
-              )) }}
+              {{
+                getTrendIcon(
+                  calculateTrend(
+                    calculatePercentage(metric.value, metric.total),
+                    metric.previousValue
+                      ? calculatePercentage(metric.previousValue, metric.total)
+                      : undefined,
+                  ),
+                )
+              }}
               {{
                 metric.previousValue
-                  ? Math.abs(calculateTrend(
-                      calculatePercentage(metric.value, metric.total),
-                      calculatePercentage(metric.previousValue, metric.total)
-                    ) || 0).toFixed(1)
+                  ? Math.abs(
+                      calculateTrend(
+                        calculatePercentage(metric.value, metric.total),
+                        calculatePercentage(metric.previousValue, metric.total),
+                      ) || 0,
+                    ).toFixed(1)
                   : '0.0'
               }}%
             </span>

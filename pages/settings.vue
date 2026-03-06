@@ -37,14 +37,17 @@ function formatDate(dateStr: string): string {
 
 async function loadSettings(): Promise<void> {
   try {
-    const data = await $fetch('/api/settings')
+    const data = await $fetch<{
+      user: { name: string; email: string; role: string; createdAt: string }
+      tenant: { name: string; slug: string; createdAt: string }
+    }>('/api/settings')
     profileName.value = data.user.name
     profileEmail.value = data.user.email
     userRole.value = data.user.role
-    userCreatedAt.value = data.user.createdAt as unknown as string
+    userCreatedAt.value = data.user.createdAt
     tenantName.value = data.tenant.name
     tenantSlug.value = data.tenant.slug
-    tenantCreatedAt.value = data.tenant.createdAt as unknown as string
+    tenantCreatedAt.value = data.tenant.createdAt
   } finally {
     loading.value = false
   }
@@ -62,8 +65,9 @@ async function saveProfile(): Promise<void> {
     })
     await refreshSession()
     profileMsg.value = { type: 'success', text: 'Perfil atualizado com sucesso.' }
-  } catch (err: any) {
-    profileMsg.value = { type: 'error', text: err?.data?.message || 'Erro ao salvar perfil.' }
+  } catch (error: unknown) {
+    const e = error as { data?: { message?: string } }
+    profileMsg.value = { type: 'error', text: e.data?.message || 'Erro ao salvar perfil.' }
   } finally {
     savingProfile.value = false
   }
@@ -87,8 +91,9 @@ async function savePassword(): Promise<void> {
     newPassword.value = ''
     confirmPassword.value = ''
     passwordMsg.value = { type: 'success', text: 'Senha alterada com sucesso.' }
-  } catch (err: any) {
-    passwordMsg.value = { type: 'error', text: err?.data?.message || 'Erro ao alterar senha.' }
+  } catch (error: unknown) {
+    const e = error as { data?: { message?: string } }
+    passwordMsg.value = { type: 'error', text: e.data?.message || 'Erro ao alterar senha.' }
   } finally {
     savingPassword.value = false
   }
@@ -100,14 +105,21 @@ async function saveTenant(): Promise<void> {
   tenantMsg.value = null
 
   try {
-    const res = await $fetch('/api/settings/tenant', {
-      method: 'PUT',
-      body: { name: tenantName.value },
-    })
+    const res = await $fetch<{ tenant: { id: string; name: string; slug: string } }>(
+      '/api/settings/tenant',
+      {
+        method: 'PUT',
+        body: { name: tenantName.value },
+      },
+    )
     tenantSlug.value = res.tenant.slug
     tenantMsg.value = { type: 'success', text: 'Dados da empresa atualizados.' }
-  } catch (err: any) {
-    tenantMsg.value = { type: 'error', text: err?.data?.message || 'Erro ao salvar dados da empresa.' }
+  } catch (error: unknown) {
+    const e = error as { data?: { message?: string } }
+    tenantMsg.value = {
+      type: 'error',
+      text: e.data?.message || 'Erro ao salvar dados da empresa.',
+    }
   } finally {
     savingTenant.value = false
   }
@@ -118,9 +130,7 @@ onMounted(loadSettings)
 
 <template>
   <section class="flex flex-col gap-6 max-w-3xl">
-    <h1 class="text-xl font-semibold text-gray-900">
-      Configurações
-    </h1>
+    <h1 class="text-xl font-semibold text-gray-900">Configurações</h1>
 
     <div
       v-if="loading"
@@ -148,7 +158,8 @@ onMounted(loadSettings)
               <label
                 for="profile-name"
                 class="text-sm font-medium text-gray-700"
-              >Nome</label>
+                >Nome</label
+              >
               <InputText
                 id="profile-name"
                 v-model="profileName"
@@ -161,7 +172,8 @@ onMounted(loadSettings)
               <label
                 for="profile-email"
                 class="text-sm font-medium text-gray-700"
-              >Email</label>
+                >Email</label
+              >
               <InputText
                 id="profile-email"
                 v-model="profileEmail"
@@ -172,8 +184,13 @@ onMounted(loadSettings)
             </div>
 
             <div class="flex items-center gap-4 text-sm text-gray-500">
-              <span>Função: <strong class="text-gray-700">{{ userRole }}</strong></span>
-              <span>Membro desde: <strong class="text-gray-700">{{ formatDate(userCreatedAt) }}</strong></span>
+              <span
+                >Função: <strong class="text-gray-700">{{ userRole }}</strong></span
+              >
+              <span
+                >Membro desde:
+                <strong class="text-gray-700">{{ formatDate(userCreatedAt) }}</strong></span
+              >
             </div>
 
             <Message
@@ -214,7 +231,8 @@ onMounted(loadSettings)
               <label
                 for="current-password"
                 class="text-sm font-medium text-gray-700"
-              >Senha atual</label>
+                >Senha atual</label
+              >
               <InputText
                 id="current-password"
                 v-model="currentPassword"
@@ -229,7 +247,8 @@ onMounted(loadSettings)
                 <label
                   for="new-password"
                   class="text-sm font-medium text-gray-700"
-                >Nova senha</label>
+                  >Nova senha</label
+                >
                 <InputText
                   id="new-password"
                   v-model="newPassword"
@@ -243,7 +262,8 @@ onMounted(loadSettings)
                 <label
                   for="confirm-password"
                   class="text-sm font-medium text-gray-700"
-                >Confirmar nova senha</label>
+                  >Confirmar nova senha</label
+                >
                 <InputText
                   id="confirm-password"
                   v-model="confirmPassword"
@@ -294,7 +314,8 @@ onMounted(loadSettings)
               <label
                 for="tenant-name"
                 class="text-sm font-medium text-gray-700"
-              >Nome da empresa</label>
+                >Nome da empresa</label
+              >
               <InputText
                 id="tenant-name"
                 v-model="tenantName"
@@ -304,8 +325,13 @@ onMounted(loadSettings)
             </div>
 
             <div class="flex items-center gap-4 text-sm text-gray-500">
-              <span>Slug: <strong class="text-gray-700">{{ tenantSlug }}</strong></span>
-              <span>Criada em: <strong class="text-gray-700">{{ formatDate(tenantCreatedAt) }}</strong></span>
+              <span
+                >Slug: <strong class="text-gray-700">{{ tenantSlug }}</strong></span
+              >
+              <span
+                >Criada em:
+                <strong class="text-gray-700">{{ formatDate(tenantCreatedAt) }}</strong></span
+              >
             </div>
 
             <Message

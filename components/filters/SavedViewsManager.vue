@@ -70,7 +70,7 @@ function handleDeleteView(id: string): void {
 
 function formatDate(isoDate: string): string {
   if (!import.meta.client) return ''
-  
+
   const date = new Date(isoDate)
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -84,7 +84,7 @@ function getFiltersSummary(view: any): string {
   const parts: string[] = []
 
   parts.push(
-    `${formatToDisplayDate(view.filters.dateRange.start)} - ${formatToDisplayDate(view.filters.dateRange.end)}`
+    `${formatToDisplayDate(view.filters.dateRange.start)} - ${formatToDisplayDate(view.filters.dateRange.end)}`,
   )
 
   const filterCount =
@@ -145,9 +145,7 @@ function getFiltersSummary(view: any): string {
               {{ getFiltersSummary(view) }}
             </p>
 
-            <p class="text-xs text-gray-400">
-              Atualizado em {{ formatDate(view.updatedAt) }}
-            </p>
+            <p class="text-xs text-gray-400">Atualizado em {{ formatDate(view.updatedAt) }}</p>
           </div>
 
           <div class="flex flex-col gap-2">
@@ -190,7 +188,8 @@ function getFiltersSummary(view: any): string {
         severity="info"
         :closable="false"
       >
-        Nenhuma visualização salva ainda. Salve suas configurações de filtro para acessá-las rapidamente depois!
+        Nenhuma visualização salva ainda. Salve suas configurações de filtro para acessá-las
+        rapidamente depois!
       </Message>
     </Dialog>
 

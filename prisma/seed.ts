@@ -36,10 +36,7 @@ function createSeededRandom(seed: number): () => number {
   }
 }
 
-function pickWeighted<T>(
-  random: () => number,
-  values: Array<{ value: T; weight: number }>
-): T {
+function pickWeighted<T>(random: () => number, values: Array<{ value: T; weight: number }>): T {
   const totalWeight = values.reduce((sum, item) => sum + item.weight, 0)
   const threshold = random() * totalWeight
   let cumulative = 0
@@ -169,8 +166,8 @@ async function main() {
     CUSTOMERS.map((customerDef) =>
       prisma.customer.create({
         data: { tenantId: tenant.id, name: customerDef.name, region: customerDef.region },
-      })
-    )
+      }),
+    ),
   )
   console.log(`  ✓ Customers: ${customers.length}`)
 
@@ -179,8 +176,8 @@ async function main() {
     PRODUCTS.map((productDef) =>
       prisma.product.create({
         data: { tenantId: tenant.id, name: productDef.name, category: productDef.category },
-      })
-    )
+      }),
+    ),
   )
   console.log(`  ✓ Products: ${products.length}`)
 

@@ -10,12 +10,7 @@ export const REPORT_TRANSACTION_CATEGORIES = [
 ] as const
 export type ReportTransactionCategory = (typeof REPORT_TRANSACTION_CATEGORIES)[number]
 
-export const REPORT_PAYMENT_METHODS = [
-  'credit_card',
-  'pix',
-  'bank_slip',
-  'bank_transfer',
-] as const
+export const REPORT_PAYMENT_METHODS = ['credit_card', 'pix', 'bank_slip', 'bank_transfer'] as const
 export type ReportPaymentMethod = (typeof REPORT_PAYMENT_METHODS)[number]
 
 export const REPORT_STATUS_LABELS: Record<ReportTransactionStatus, string> = {

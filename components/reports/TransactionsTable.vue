@@ -102,7 +102,7 @@ function handleSort(event: DataTableSortEvent): void {
       field="date"
       header="Data"
       sortable
-      style="min-width: 11rem;"
+      style="min-width: 11rem"
     >
       <template #body="{ data }: { data: ReportTransaction }">
         {{ formatDate(data.date) }}
@@ -112,27 +112,27 @@ function handleSort(event: DataTableSortEvent): void {
     <Column
       field="id"
       header="ID"
-      style="min-width: 10rem;"
+      style="min-width: 10rem"
     />
 
     <Column
       field="customerName"
       header="Cliente"
       sortable
-      style="min-width: 13rem;"
+      style="min-width: 13rem"
     />
 
     <Column
       field="description"
       header="Descricao"
-      style="min-width: 16rem;"
+      style="min-width: 16rem"
     />
 
     <Column
       field="status"
       header="Status"
       sortable
-      style="min-width: 9rem;"
+      style="min-width: 9rem"
     >
       <template #body="{ data }: { data: ReportTransaction }">
         <span
@@ -148,7 +148,7 @@ function handleSort(event: DataTableSortEvent): void {
       field="amount"
       header="Valor"
       sortable
-      style="min-width: 9rem;"
+      style="min-width: 9rem"
     >
       <template #body="{ data }: { data: ReportTransaction }">
         <div class="font-medium">
