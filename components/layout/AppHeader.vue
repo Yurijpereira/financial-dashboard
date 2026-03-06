@@ -1,6 +1,17 @@
 <script setup lang="ts">
+import { useQueryClient } from '@tanstack/vue-query'
+
+const { user, clear: clearSession } = useUserSession()
+const queryClient = useQueryClient()
+
 async function refreshDashboardData(): Promise<void> {
-  await refreshNuxtData('financial-summary')
+  await queryClient.invalidateQueries()
+}
+
+async function handleLogout(): Promise<void> {
+  await $fetch('/api/auth/logout', { method: 'POST' })
+  await clearSession()
+  await navigateTo('/login')
 }
 </script>
 
@@ -15,17 +26,27 @@ async function refreshDashboardData(): Promise<void> {
       </span>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-3">
       <Button
         icon="pi pi-refresh"
         class="p-button-text"
         label="Atualizar dados"
         @click="refreshDashboardData"
       />
+
+      <div
+        v-if="user"
+        class="flex items-center gap-2 text-sm text-gray-600"
+      >
+        <i class="pi pi-user" />
+        <span>{{ user.name }}</span>
+      </div>
+
       <Button
-        icon="pi pi-user"
+        icon="pi pi-sign-out"
         class="p-button-rounded p-button-text"
-        aria-label="Perfil"
+        aria-label="Sair"
+        @click="handleLogout"
       />
     </div>
   </header>

@@ -14,33 +14,33 @@ function isStringArray(value: unknown): value is string[] {
 
 function isValidDateRange(value: unknown): value is DashboardFilters['dateRange'] {
   if (!value || typeof value !== 'object') return false
-  const d = value as Partial<DashboardFilters['dateRange']>
-  return typeof d.start === 'string' && typeof d.end === 'string'
+  const dateRange = value as Partial<DashboardFilters['dateRange']>
+  return typeof dateRange.start === 'string' && typeof dateRange.end === 'string'
 }
 
 function isDashboardFilters(value: unknown): value is DashboardFilters {
   if (!value || typeof value !== 'object') return false
-  const f = value as Partial<DashboardFilters>
+  const filters = value as Partial<DashboardFilters>
   return (
-    isValidDateRange(f.dateRange) &&
-    typeof f.preset === 'string' &&
-    PERIOD_PRESETS.has(f.preset) &&
-    isStringArray(f.customers) &&
-    isStringArray(f.regions) &&
-    isStringArray(f.products) &&
-    typeof f.compareWithPrevious === 'boolean'
+    isValidDateRange(filters.dateRange) &&
+    typeof filters.preset === 'string' &&
+    PERIOD_PRESETS.has(filters.preset) &&
+    isStringArray(filters.customers) &&
+    isStringArray(filters.regions) &&
+    isStringArray(filters.products) &&
+    typeof filters.compareWithPrevious === 'boolean'
   )
 }
 
 function isSavedView(value: unknown): value is SavedView {
   if (!value || typeof value !== 'object') return false
-  const v = value as Partial<SavedView>
+  const view = value as Partial<SavedView>
   return (
-    typeof v.id === 'string' &&
-    typeof v.name === 'string' &&
-    isDashboardFilters(v.filters) &&
-    typeof v.createdAt === 'string' &&
-    typeof v.updatedAt === 'string'
+    typeof view.id === 'string' &&
+    typeof view.name === 'string' &&
+    isDashboardFilters(view.filters) &&
+    typeof view.createdAt === 'string' &&
+    typeof view.updatedAt === 'string'
   )
 }
 
@@ -81,7 +81,7 @@ export const useSavedViewsStore = defineStore('savedViews', () => {
   }
 
   function updateView(id: string, input: Partial<SavedViewInput>): boolean {
-    const index = views.value.findIndex((v) => v.id === id)
+    const index = views.value.findIndex((view) => view.id === id)
     if (index === -1) return false
     const view = views.value[index]!
     if (input.name !== undefined) view.name = input.name
@@ -91,14 +91,14 @@ export const useSavedViewsStore = defineStore('savedViews', () => {
   }
 
   function deleteView(id: string): boolean {
-    const index = views.value.findIndex((v) => v.id === id)
+    const index = views.value.findIndex((view) => view.id === id)
     if (index === -1) return false
     views.value.splice(index, 1)
     return true
   }
 
   function getViewById(id: string): SavedView | undefined {
-    return views.value.find((v) => v.id === id)
+    return views.value.find((view) => view.id === id)
   }
 
   function applyView(id: string): DashboardFilters | null {
@@ -109,13 +109,13 @@ export const useSavedViewsStore = defineStore('savedViews', () => {
 
   function hasViewWithName(name: string, excludeId?: string): boolean {
     return views.value.some(
-      (v) => v.name.toLowerCase() === name.toLowerCase() && v.id !== excludeId,
+      (view) => view.name.toLowerCase() === name.toLowerCase() && view.id !== excludeId,
     )
   }
 
   const sortedViews = computed(() =>
     [...views.value].sort(
-      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      (viewA, viewB) => new Date(viewB.updatedAt).getTime() - new Date(viewA.updatedAt).getTime(),
     ),
   )
 

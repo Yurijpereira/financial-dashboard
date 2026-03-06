@@ -7,14 +7,23 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.3",
     "@primevue/themes": "^4.5.2",
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
     "@tanstack/vue-query": "^5.92.1",
     "echarts": "^5.6.0",
     "nuxt": "^4.2.1",
+    "nuxt-auth-utils": "^0.5.29",
+    "pg": "^8.19.0",
     "pinia": "^3.0.4",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.2",
@@ -25,14 +34,22 @@
   },
   "packageManager": "pnpm@10.25.0+sha512.5e82639027af37cf832061bcc6d639c219634488e0f2baebe785028a793de7b525ffcd3f7ff574f5e9860654e098fe852ba8ac5dd5cefe1767d23a020a92f501",
   "devDependencies": {
+    "@adonisjs/hash": "^10.0.0",
+    "@types/pg": "^8.18.0",
     "@vitest/ui": "^4.0.15",
     "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.22",
     "cypress": "^15.7.1",
+    "dotenv": "^17.3.1",
     "jsdom": "^27.3.0",
     "postcss": "^8.5.6",
+    "prisma": "^7.4.2",
     "tailwindcss": "^3.4.18",
+    "tsx": "^4.21.0",
     "vitest": "^4.0.15",
     "vue-tsc": "^3.1.8"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   }
 }

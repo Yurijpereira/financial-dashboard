@@ -26,16 +26,16 @@ function isStringArray(value: unknown): value is string[] {
 
 function isValidStoredFilters(value: unknown): value is DashboardFilters {
   if (!value || typeof value !== 'object') return false
-  const f = value as Partial<DashboardFilters>
+  const filters = value as Partial<DashboardFilters>
   return (
-    !!f.dateRange &&
-    isValidDateRange(f.dateRange as DateRange) &&
-    typeof f.preset === 'string' &&
-    PERIOD_PRESETS.includes(f.preset as PeriodPreset) &&
-    isStringArray(f.customers) &&
-    isStringArray(f.regions) &&
-    isStringArray(f.products) &&
-    typeof f.compareWithPrevious === 'boolean'
+    !!filters.dateRange &&
+    isValidDateRange(filters.dateRange as DateRange) &&
+    typeof filters.preset === 'string' &&
+    PERIOD_PRESETS.includes(filters.preset as PeriodPreset) &&
+    isStringArray(filters.customers) &&
+    isStringArray(filters.regions) &&
+    isStringArray(filters.products) &&
+    typeof filters.compareWithPrevious === 'boolean'
   )
 }
 
@@ -95,7 +95,7 @@ export const useFiltersStore = defineStore('filters', () => {
   }
 
   function removeRegion(region: string): void {
-    filters.value.regions = filters.value.regions.filter((r) => r !== region)
+    filters.value.regions = filters.value.regions.filter((currentRegion) => currentRegion !== region)
   }
 
   function setRegions(regions: string[]): void {
@@ -109,7 +109,7 @@ export const useFiltersStore = defineStore('filters', () => {
   }
 
   function removeProduct(product: string): void {
-    filters.value.products = filters.value.products.filter((p) => p !== product)
+    filters.value.products = filters.value.products.filter((currentProduct) => currentProduct !== product)
   }
 
   function setProducts(products: string[]): void {

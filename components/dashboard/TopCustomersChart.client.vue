@@ -92,7 +92,7 @@ function updateChart() {
       itemWidth: 12,
       itemHeight: 12,
       formatter: (name: string) => {
-        const item = chartData.find(d => d.name === name)
+        const item = chartData.find(dataPoint => dataPoint.name === name)
         if (!item) return name
         return `${name}\n${formatPercentage(item.percentage)}`
       },
