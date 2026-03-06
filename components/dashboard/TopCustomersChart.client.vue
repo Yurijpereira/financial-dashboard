@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import type { EChartsType } from 'echarts'
+import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { useFormatters } from '@/composables/useFormatters'
 
 interface CustomerData {
@@ -67,15 +68,21 @@ function updateChart() {
       textStyle: {
         color: '#374151',
       },
-      formatter: (params: any) => {
+      formatter: (params: CallbackDataParams) => {
+        const data = params.data as {
+          name: string
+          value: number
+          orders: number
+          percentage: number
+        }
         return `
           <div style="font-size: 12px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">${params.name}</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">${data.name}</div>
             <div style="color: #6b7280; margin-bottom: 2px;">
-              ${formatCurrencyBRL(params.value)}
+              ${formatCurrencyBRL(data.value)}
             </div>
             <div style="color: #6b7280; font-size: 11px;">
-              ${params.data.orders} pedidos • ${formatPercentage(params.data.percentage)}
+              ${data.orders} pedidos • ${formatPercentage(data.percentage)}
             </div>
           </div>
         `
@@ -119,8 +126,9 @@ function updateChart() {
             fontSize: 14,
             fontWeight: 'bold',
             color: '#374151',
-            formatter: (params: any) => {
-              return `${formatPercentage(params.data.percentage)}`
+            formatter: (params: CallbackDataParams) => {
+              const data = params.data as { percentage: number }
+              return `${formatPercentage(data.percentage)}`
             },
           },
           itemStyle: {
