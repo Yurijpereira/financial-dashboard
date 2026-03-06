@@ -24,32 +24,16 @@ const { loadFiltersFromUrl, watchFiltersForUrlSync } = useFiltersUrlSync()
 
 const showAdvancedFilters = ref(false)
 
-const customerOptions: FilterOption[] = [
-  { value: 'c_1', label: 'Tech Solutions Brasil' },
-  { value: 'c_2', label: 'Investimentos LTDA.' },
-  { value: 'c_3', label: 'Fintech Empresarial' },
-  { value: 'c_4', label: 'Consultoria Digital' },
-  { value: 'c_5', label: 'Grupo Inovação' },
-  { value: 'c_6', label: 'Sistemas Integrados' },
-  { value: 'c_7', label: 'TechCorp Solutions' },
-]
+// Load filter options from API (dynamic, tenant-aware)
+const { data: filterOptionsData } = useFetch<{
+  customers: FilterOption[]
+  regions: FilterOption[]
+  products: FilterOption[]
+}>('/api/filters/options', { default: () => ({ customers: [], regions: [], products: [] }) })
 
-const regionOptions: FilterOption[] = [
-  { value: 'sudeste', label: 'Sudeste' },
-  { value: 'sul', label: 'Sul' },
-  { value: 'nordeste', label: 'Nordeste' },
-  { value: 'norte', label: 'Norte' },
-  { value: 'centro-oeste', label: 'Centro-Oeste' },
-]
-
-const productOptions: FilterOption[] = [
-  { value: 'software', label: 'Software' },
-  { value: 'consultoria', label: 'Consultoria' },
-  { value: 'suporte', label: 'Suporte Técnico' },
-  { value: 'treinamento', label: 'Treinamento' },
-  { value: 'licencas', label: 'Licenças' },
-  { value: 'hardware', label: 'Hardware' },
-]
+const customerOptions = computed(() => filterOptionsData.value?.customers ?? [])
+const regionOptions = computed(() => filterOptionsData.value?.regions ?? [])
+const productOptions = computed(() => filterOptionsData.value?.products ?? [])
 
 const selectedCustomers = computed({
   get: () => filters.value.customers,
