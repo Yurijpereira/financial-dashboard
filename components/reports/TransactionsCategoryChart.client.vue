@@ -87,7 +87,8 @@ function renderChart(): void {
     label: REPORT_CATEGORY_LABELS[metric.key],
     transactionsCount: metric.transactionsCount,
     itemStyle: {
-      color: props.selectedCategory && props.selectedCategory === metric.key ? '#1d4ed8' : '#2563eb',
+      color:
+        props.selectedCategory && props.selectedCategory === metric.key ? '#1d4ed8' : '#2563eb',
     },
   }))
 
@@ -184,12 +185,15 @@ watch(
     if (props.loading) return
     renderChart()
   },
-  { deep: true }
+  { deep: true },
 )
 </script>
 
 <template>
-  <div class="relative w-full" style="height: 320px;">
+  <div
+    class="relative w-full"
+    style="height: 320px"
+  >
     <div
       v-if="loading"
       class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"

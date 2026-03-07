@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/server/utils/prisma'
 
 const RegisterSchema = z.object({
@@ -55,22 +56,42 @@ export default defineEventHandler(async (event) => {
 
   const passwordHash = await hashPassword(password)
 
-  const tenant = await prisma.tenant.create({
-    data: {
-      name: tenantName,
-      slug,
-    },
-  })
+  let tenant: { id: string }
+  let user: { id: string; email: string; name: string; role: string; tenantId: string }
 
-  const user = await prisma.user.create({
-    data: {
-      tenantId: tenant.id,
-      email,
-      name,
-      passwordHash,
-      role: 'ADMIN',
-    },
-  })
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const createdTenant = await tx.tenant.create({
+        data: { name: tenantName, slug },
+      })
+
+      const createdUser = await tx.user.create({
+        data: {
+          tenantId: createdTenant.id,
+          email,
+          name,
+          passwordHash,
+          role: 'ADMIN',
+        },
+      })
+
+      return { tenant: createdTenant, user: createdUser }
+    })
+
+    tenant = result.tenant
+    user = result.user
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const target = (error.meta?.target as string[] | undefined) ?? []
+      if (target.includes('email')) {
+        throw createError({ statusCode: 409, message: 'Este email já está cadastrado' })
+      }
+      if (target.includes('slug')) {
+        throw createError({ statusCode: 409, message: 'Já existe uma empresa com este nome' })
+      }
+    }
+    throw createError({ statusCode: 500, message: 'Erro ao criar conta. Tente novamente.' })
+  }
 
   await setUserSession(event, {
     user: {

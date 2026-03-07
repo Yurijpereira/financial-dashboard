@@ -1,10 +1,24 @@
 import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
-import { Prisma, TransactionStatus } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
+import { TransactionStatus } from '@prisma/client'
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
-const MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MONTH_NAMES = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
 
 const SummaryQuerySchema = z.object({
   startDate: z.string().regex(ISO_DATE, 'Data inválida (esperado: YYYY-MM-DD)').optional(),
@@ -16,7 +30,12 @@ const SummaryQuerySchema = z.object({
 })
 
 function commaSplit(input: string | undefined): string[] {
-  return input ? input.split(',').map((value) => value.trim()).filter(Boolean) : []
+  return input
+    ? input
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+    : []
 }
 
 function variation(current: number, previous: number | undefined): number | null {
@@ -32,7 +51,7 @@ function buildTransactionWhere(
     customerList: string[]
     regionList: string[]
     productList: string[]
-  }
+  },
 ): Prisma.TransactionWhereInput {
   const where: Prisma.TransactionWhereInput = { tenantId }
 
@@ -80,17 +99,38 @@ export default defineEventHandler(async (event) => {
       productList,
     })
 
-    // Fetch all transactions for the period
-    const transactions = await prisma.transaction.findMany({
-      where,
-      include: { customer: true },
-      orderBy: { date: 'asc' },
-    })
+    // ── Parallel DB aggregations ──────────────────────────
+    const [aggregation, topCustomerGroups, paidTransactionsCount, dateSeries] = await Promise.all([
+      prisma.transaction.aggregate({
+        where,
+        _sum: { amountCents: true },
+        _count: { id: true },
+      }),
+
+      prisma.transaction.groupBy({
+        by: ['customerId'],
+        where,
+        _sum: { amountCents: true },
+        _count: { id: true },
+        orderBy: { _sum: { amountCents: 'desc' } },
+        take: 5,
+      }),
+
+      // Paid count for client-side funnel estimation
+      prisma.transaction.count({
+        where: { ...where, status: TransactionStatus.PAID },
+      }),
+
+      prisma.transaction.findMany({
+        where,
+        select: { date: true, amountCents: true },
+        orderBy: { date: 'asc' },
+      }),
+    ])
 
     // ── KPIs ──────────────────────────────────────────────
-    const totalRevenueCents = transactions.reduce((sum, transaction) => sum + transaction.amountCents, 0)
-    const totalRevenue = totalRevenueCents / 100
-    const totalOrders = transactions.length
+    const totalRevenue = (aggregation._sum.amountCents ?? 0) / 100
+    const totalOrders = aggregation._count.id
     const averageTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
     // ── Previous Period (comparison) ──────────────────────
@@ -112,20 +152,20 @@ export default defineEventHandler(async (event) => {
       })
       prevWhere.date = { gte: prevStart, lte: prevEnd }
 
-      const prevTx = await prisma.transaction.findMany({
+      const prevAgg = await prisma.transaction.aggregate({
         where: prevWhere,
-        select: { amountCents: true },
+        _sum: { amountCents: true },
+        _count: { id: true },
       })
 
-      const prevRevCents = prevTx.reduce((sum, transaction) => sum + transaction.amountCents, 0)
-      prevRevenue = prevRevCents / 100
-      prevOrders = prevTx.length
+      prevRevenue = (prevAgg._sum.amountCents ?? 0) / 100
+      prevOrders = prevAgg._count.id
       prevAvgTicket = prevOrders > 0 ? prevRevenue / prevOrders : 0
     }
 
     // ── Sales Series (group by day) ──────────────────────
     const salesByDay = new Map<string, number>()
-    for (const transaction of transactions) {
+    for (const transaction of dateSeries) {
       const day = transaction.date.toISOString().slice(0, 10)
       salesByDay.set(day, (salesByDay.get(day) ?? 0) + transaction.amountCents)
     }
@@ -134,26 +174,25 @@ export default defineEventHandler(async (event) => {
       .map(([date, cents]) => ({ date, value: Math.round(cents) / 100 }))
 
     // ── Top Customers ────────────────────────────────────
-    const custMap = new Map<string, { id: string; name: string; revenue: number; orders: number }>()
-    for (const transaction of transactions) {
-      const entry = custMap.get(transaction.customerId) ?? {
-        id: transaction.customerId,
-        name: transaction.customer.name,
-        revenue: 0,
-        orders: 0,
-      }
-      entry.revenue += transaction.amountCents
-      entry.orders += 1
-      custMap.set(transaction.customerId, entry)
-    }
-    const topCustomers = Array.from(custMap.values())
-      .sort((customerA, customerB) => customerB.revenue - customerA.revenue)
-      .slice(0, 5)
-      .map((customer) => ({ ...customer, revenue: Math.round(customer.revenue) / 100 }))
+    const customerIds = topCustomerGroups.map((g) => g.customerId)
+    const customers =
+      customerIds.length > 0
+        ? await prisma.customer.findMany({
+            where: { id: { in: customerIds } },
+            select: { id: true, name: true },
+          })
+        : []
+    const customerNameMap = new Map(customers.map((c) => [c.id, c.name]))
+    const topCustomers = topCustomerGroups.map((group) => ({
+      id: group.customerId,
+      name: customerNameMap.get(group.customerId) ?? '',
+      revenue: Math.round(group._sum.amountCents ?? 0) / 100,
+      orders: group._count.id,
+    }))
 
     // ── Monthly Comparison ───────────────────────────────
     const monthMap = new Map<string, { revenue: number; orders: number }>()
-    for (const transaction of transactions) {
+    for (const transaction of dateSeries) {
       const key = `${transaction.date.getUTCFullYear()}-${String(transaction.date.getUTCMonth() + 1).padStart(2, '0')}`
       const entry = monthMap.get(key) ?? { revenue: 0, orders: 0 }
       entry.revenue += transaction.amountCents
@@ -174,26 +213,13 @@ export default defineEventHandler(async (event) => {
         }
       })
 
-    // ── Conversion Metrics (derived from transaction volume) ─
-    const paidCount = transactions.filter((transaction) => transaction.status === TransactionStatus.PAID).length
-    const proposals = Math.round(paidCount / 0.41)
-    const opportunities = Math.round(proposals / 0.37)
-    const leads = Math.round(opportunities / 0.43)
-    const visitors = Math.round(leads / 0.23)
-
-    const conversionMetrics = [
-      { label: 'Visitantes → Leads', value: leads, total: visitors, previousValue: compare ? Math.round(leads * 0.93) : undefined },
-      { label: 'Leads → Oportunidades', value: opportunities, total: leads, previousValue: compare ? Math.round(opportunities * 0.95) : undefined },
-      { label: 'Oportunidades → Propostas', value: proposals, total: opportunities, previousValue: compare ? Math.round(proposals * 0.94) : undefined },
-      { label: 'Propostas → Vendas', value: paidCount, total: proposals, previousValue: compare ? Math.round(paidCount * 0.92) : undefined },
-    ]
-
     return {
       kpis: {
         revenue: {
           value: Math.round(totalRevenue * 100) / 100,
           variationPercentage: variation(totalRevenue, prevRevenue),
-          previousValue: prevRevenue !== undefined ? Math.round(prevRevenue * 100) / 100 : undefined,
+          previousValue:
+            prevRevenue !== undefined ? Math.round(prevRevenue * 100) / 100 : undefined,
         },
         billedOrders: {
           value: totalOrders,
@@ -203,13 +229,14 @@ export default defineEventHandler(async (event) => {
         averageTicket: {
           value: Math.round(averageTicket * 100) / 100,
           variationPercentage: variation(averageTicket, prevAvgTicket),
-          previousValue: prevAvgTicket !== undefined ? Math.round(prevAvgTicket * 100) / 100 : undefined,
+          previousValue:
+            prevAvgTicket !== undefined ? Math.round(prevAvgTicket * 100) / 100 : undefined,
         },
       },
       salesSeries,
       topCustomers,
       monthlyComparison,
-      conversionMetrics,
+      paidTransactionsCount,
     }
   } catch (error) {
     console.error('Summary endpoint error:', error)

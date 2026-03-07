@@ -70,7 +70,7 @@ export function getDateRangeFromPreset(preset: PeriodPreset): DateRange {
 
 export function isValidISODate(dateString: string): boolean {
   if (!dateString || typeof dateString !== 'string') return false
-  
+
   const regex = /^\d{4}-\d{2}-\d{2}$/
   if (!regex.test(dateString)) return false
 
@@ -82,7 +82,7 @@ export function isValidDateRange(range: DateRange): boolean {
   if (!range || typeof range !== 'object') {
     return false
   }
-  
+
   if (!isValidISODate(range.start) || !isValidISODate(range.end)) {
     return false
   }

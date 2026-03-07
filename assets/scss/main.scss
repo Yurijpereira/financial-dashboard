@@ -13,7 +13,12 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Inter',
+    sans-serif;
   background-color: $color-bg-page;
   color: $color-text-main;
 }

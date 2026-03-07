@@ -49,9 +49,14 @@ async function handleSubmit(): Promise<void> {
 
     await refreshSession()
     await navigateTo('/')
-  } catch (error: any) {
-    const message = error?.data?.statusMessage || error?.statusMessage || error?.message
-    errorMessage.value = message || 'Ocorreu um erro. Tente novamente.'
+  } catch (error: unknown) {
+    const e = error as {
+      data?: { statusMessage?: string }
+      statusMessage?: string
+      message?: string
+    }
+    errorMessage.value =
+      e.data?.statusMessage || e.statusMessage || e.message || 'Ocorreu um erro. Tente novamente.'
   } finally {
     loading.value = false
   }
@@ -66,9 +71,7 @@ async function handleSubmit(): Promise<void> {
           <i class="pi pi-chart-line text-indigo-500 text-3xl" />
           <h1 class="text-2xl font-bold text-gray-900">FinDash</h1>
         </div>
-        <p class="text-gray-500 text-sm">
-          Dashboard financeiro B2B
-        </p>
+        <p class="text-gray-500 text-sm">Dashboard financeiro B2B</p>
       </div>
 
       <Card class="shadow-lg">

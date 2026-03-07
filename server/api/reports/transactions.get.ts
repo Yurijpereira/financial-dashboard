@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
-import { Prisma, TransactionStatus, ProductCategory, PaymentMethod } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
+import { TransactionStatus, ProductCategory, PaymentMethod } from '@prisma/client'
 import type {
   ReportPaymentMethod,
   ReportTransactionCategory,
@@ -18,7 +19,12 @@ import {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
 const commaSplit = (input: string | undefined): string[] =>
-  input ? input.split(',').map((item) => item.trim()).filter(Boolean) : []
+  input
+    ? input
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : []
 
 const optionalAmount = (input: string | undefined): number | null => {
   if (!input) return null
@@ -35,28 +41,38 @@ const TransactionsQuerySchema = z.object({
   customers: z.string().max(1_000).optional().transform(commaSplit),
   regions: z.string().max(1_000).optional().transform(commaSplit),
   products: z.string().max(1_000).optional().transform(commaSplit),
-  statuses: z.string().max(500).optional().transform((raw) =>
-    commaSplit(raw).filter((status): status is ReportTransactionStatus =>
-      (REPORT_TRANSACTION_STATUSES as readonly string[]).includes(status)
-    )
-  ),
-  categories: z.string().max(500).optional().transform((raw) =>
-    commaSplit(raw).filter((category): category is ReportTransactionCategory =>
-      (REPORT_TRANSACTION_CATEGORIES as readonly string[]).includes(category)
-    )
-  ),
-  paymentMethods: z.string().max(500).optional().transform((raw) =>
-    commaSplit(raw).filter((method): method is ReportPaymentMethod =>
-      (REPORT_PAYMENT_METHODS as readonly string[]).includes(method)
-    )
-  ),
+  statuses: z
+    .string()
+    .max(500)
+    .optional()
+    .transform((raw) =>
+      commaSplit(raw).filter((status): status is ReportTransactionStatus =>
+        (REPORT_TRANSACTION_STATUSES as readonly string[]).includes(status),
+      ),
+    ),
+  categories: z
+    .string()
+    .max(500)
+    .optional()
+    .transform((raw) =>
+      commaSplit(raw).filter((category): category is ReportTransactionCategory =>
+        (REPORT_TRANSACTION_CATEGORIES as readonly string[]).includes(category),
+      ),
+    ),
+  paymentMethods: z
+    .string()
+    .max(500)
+    .optional()
+    .transform((raw) =>
+      commaSplit(raw).filter((method): method is ReportPaymentMethod =>
+        (REPORT_PAYMENT_METHODS as readonly string[]).includes(method),
+      ),
+    ),
   minAmount: z.string().optional().transform(optionalAmount),
   maxAmount: z.string().optional().transform(optionalAmount),
   sortField: z.enum(['date', 'amount', 'customerName', 'status']).default('date'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
-
-// ── Enum mapping helpers ──────────────────────────────────
 
 const STATUS_TO_DB: Record<ReportTransactionStatus, TransactionStatus> = {
   paid: TransactionStatus.PAID,
@@ -92,8 +108,6 @@ function toLowerPayment(payment: PaymentMethod): ReportPaymentMethod {
   return payment.toLowerCase() as ReportPaymentMethod
 }
 
-// ── Main handler ──────────────────────────────────────────
-
 export default defineEventHandler(async (event) => {
   const tenantId = event.context.tenantId as string
   const raw = getQuery(event)
@@ -110,7 +124,6 @@ export default defineEventHandler(async (event) => {
   const query = result.data
 
   try {
-    // ── Build WHERE clause ────────────────────────────
     const where: Prisma.TransactionWhereInput = { tenantId }
 
     if (query.startDate || query.endDate) {
@@ -121,9 +134,9 @@ export default defineEventHandler(async (event) => {
 
     if (query.customers.length > 0) where.customerId = { in: query.customers }
 
-    if (query.regions.length > 0) {
-      where.customer = { region: { in: query.regions } }
-    }
+    const customerRelation: Prisma.CustomerWhereInput = {}
+    if (query.regions.length > 0) customerRelation.region = { in: query.regions }
+    if (Object.keys(customerRelation).length > 0) where.customer = customerRelation
 
     if (query.products.length > 0) where.productId = { in: query.products }
 
@@ -156,7 +169,6 @@ export default defineEventHandler(async (event) => {
       ]
     }
 
-    // ── Build ORDER BY ────────────────────────────────
     type OrderByInput = Prisma.TransactionOrderByWithRelationInput
     let orderBy: OrderByInput
 
@@ -170,42 +182,63 @@ export default defineEventHandler(async (event) => {
       orderBy = { date: query.sortOrder }
     }
 
-    // ── Execute queries in parallel ───────────────────
     const skip = (query.page - 1) * query.pageSize
 
-    const [items, total, aggregation, allForMetrics] = await Promise.all([
-      // Paginated items
-      prisma.transaction.findMany({
-        where,
-        include: { customer: true, product: true },
-        orderBy,
-        skip,
-        take: query.pageSize,
-      }),
+    // Trend window: last 14 days within the filter period
+    const trendEnd = query.endDate ? new Date(query.endDate + 'T23:59:59.999Z') : new Date()
+    const trendWindowStart = new Date(trendEnd)
+    trendWindowStart.setDate(trendWindowStart.getDate() - 13)
+    const queryStartDate = query.startDate ? new Date(query.startDate + 'T00:00:00.000Z') : null
+    const effectiveTrendStart =
+      queryStartDate && queryStartDate > trendWindowStart ? queryStartDate : trendWindowStart
+    const trendWhere: Prisma.TransactionWhereInput = {
+      ...where,
+      date: { gte: effectiveTrendStart, lte: trendEnd },
+    }
 
-      // Total count
-      prisma.transaction.count({ where }),
+    const [items, total, aggregation, statusGroups, productGroups, trendData, products] =
+      await Promise.all([
+        prisma.transaction.findMany({
+          where,
+          include: { customer: true, product: true },
+          orderBy,
+          skip,
+          take: query.pageSize,
+        }),
 
-      // Summary aggregation
-      prisma.transaction.aggregate({
-        where,
-        _sum: { amountCents: true },
-        _count: { id: true },
-      }),
+        prisma.transaction.count({ where }),
 
-      // All matching records for metrics (lightweight)
-      prisma.transaction.findMany({
-        where,
-        select: {
-          amountCents: true,
-          status: true,
-          date: true,
-          product: { select: { category: true } },
-        },
-      }),
-    ])
+        prisma.transaction.aggregate({
+          where,
+          _sum: { amountCents: true },
+          _count: { id: true },
+        }),
 
-    // ── Map items to API format ───────────────────────
+        prisma.transaction.groupBy({
+          by: ['status'],
+          where,
+          _sum: { amountCents: true },
+          _count: { id: true },
+        }),
+
+        prisma.transaction.groupBy({
+          by: ['productId'],
+          where,
+          _sum: { amountCents: true },
+          _count: { id: true },
+        }),
+
+        prisma.transaction.findMany({
+          where: trendWhere,
+          select: { date: true, amountCents: true },
+        }),
+
+        prisma.product.findMany({
+          where: { tenantId },
+          select: { id: true, category: true },
+        }),
+      ])
+
     const mappedItems: ReportTransaction[] = items.map((transaction) => ({
       id: transaction.id,
       date: transaction.date.toISOString(),
@@ -220,33 +253,38 @@ export default defineEventHandler(async (event) => {
       description: transaction.description,
     }))
 
-    // ── Summary ───────────────────────────────────────
     const totalAmount = (aggregation._sum.amountCents ?? 0) / 100
     const totalTransactions = aggregation._count.id
     const averageTicket = totalTransactions > 0 ? totalAmount / totalTransactions : 0
 
-    // ── Category metrics ──────────────────────────────
-    const categoryTotals = new Map<ProductCategory, { totalAmount: number; transactionsCount: number }>()
-    const statusTotals = new Map<TransactionStatus, { totalAmount: number; transactionsCount: number }>()
+    const productCategoryMap = new Map(products.map((product) => [product.id, product.category]))
 
-    for (const transaction of allForMetrics) {
-      // By category
-      const cat = transaction.product.category
-      const catEntry = categoryTotals.get(cat) ?? { totalAmount: 0, transactionsCount: 0 }
-      catEntry.totalAmount += transaction.amountCents
-      catEntry.transactionsCount += 1
-      categoryTotals.set(cat, catEntry)
-
-      // By status
-      const st = transaction.status
-      const stEntry = statusTotals.get(st) ?? { totalAmount: 0, transactionsCount: 0 }
-      stEntry.totalAmount += transaction.amountCents
-      stEntry.transactionsCount += 1
-      statusTotals.set(st, stEntry)
+    const categoryTotals = new Map<
+      ProductCategory,
+      { totalAmount: number; transactionsCount: number }
+    >()
+    for (const group of productGroups) {
+      const category = productCategoryMap.get(group.productId)
+      if (!category) continue
+      const existing = categoryTotals.get(category) ?? { totalAmount: 0, transactionsCount: 0 }
+      existing.totalAmount += group._sum.amountCents ?? 0
+      existing.transactionsCount += group._count.id
+      categoryTotals.set(category, existing)
     }
 
-    const byCategory: ReportChartMetric<ReportTransactionCategory>[] = REPORT_TRANSACTION_CATEGORIES
-      .map((key) => {
+    const statusTotals = new Map<
+      TransactionStatus,
+      { totalAmount: number; transactionsCount: number }
+    >()
+    for (const group of statusGroups) {
+      statusTotals.set(group.status, {
+        totalAmount: group._sum.amountCents ?? 0,
+        transactionsCount: group._count.id,
+      })
+    }
+
+    const byCategory: ReportChartMetric<ReportTransactionCategory>[] =
+      REPORT_TRANSACTION_CATEGORIES.map((key) => {
         const dbKey = CATEGORY_TO_DB[key]
         const data = categoryTotals.get(dbKey)
         return {
@@ -255,11 +293,11 @@ export default defineEventHandler(async (event) => {
           transactionsCount: data?.transactionsCount ?? 0,
         }
       })
-      .filter((m) => m.transactionsCount > 0)
-      .sort((metricA, metricB) => metricB.totalAmount - metricA.totalAmount)
+        .filter((metric) => metric.transactionsCount > 0)
+        .sort((metricA, metricB) => metricB.totalAmount - metricA.totalAmount)
 
-    const byStatus: ReportChartMetric<ReportTransactionStatus>[] = REPORT_TRANSACTION_STATUSES
-      .map((key) => {
+    const byStatus: ReportChartMetric<ReportTransactionStatus>[] = REPORT_TRANSACTION_STATUSES.map(
+      (key) => {
         const dbKey = STATUS_TO_DB[key]
         const data = statusTotals.get(dbKey)
         return {
@@ -267,22 +305,20 @@ export default defineEventHandler(async (event) => {
           totalAmount: (data?.totalAmount ?? 0) / 100,
           transactionsCount: data?.transactionsCount ?? 0,
         }
-      })
-      .filter((m) => m.transactionsCount > 0)
+      },
+    )
+      .filter((metric) => metric.transactionsCount > 0)
       .sort((metricA, metricB) => metricB.totalAmount - metricA.totalAmount)
 
-    // ── Trend (last 14 days) ──────────────────────────
     const trendMap = new Map<string, number>()
-    for (const transaction of allForMetrics) {
+    for (const transaction of trendData) {
       const day = transaction.date.toISOString().slice(0, 10)
       trendMap.set(day, (trendMap.get(day) ?? 0) + transaction.amountCents)
     }
     const trend = Array.from(trendMap.entries())
       .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-      .slice(-14)
       .map(([date, cents]) => ({ date, totalAmount: cents / 100 }))
 
-    // ── Response ──────────────────────────────────────
     const response: ReportsTransactionsResponse = {
       items: mappedItems,
       total,

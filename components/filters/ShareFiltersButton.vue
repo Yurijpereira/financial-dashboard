@@ -51,13 +51,12 @@ function selectAll(event: Event): void {
     >
       <div class="flex flex-col gap-4">
         <p class="text-sm text-gray-600">
-          Compartilhe esta URL para que outras pessoas possam ver o dashboard com os mesmos filtros aplicados.
+          Compartilhe esta URL para que outras pessoas possam ver o dashboard com os mesmos filtros
+          aplicados.
         </p>
 
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700">
-            URL com filtros
-          </label>
+          <label class="text-sm font-medium text-gray-700"> URL com filtros </label>
 
           <div class="flex gap-2">
             <InputText
@@ -69,10 +68,7 @@ function selectAll(event: Event): void {
 
             <Button
               :icon="copySuccess ? 'pi pi-check' : 'pi pi-copy'"
-              :class="[
-                'p-button-sm',
-                copySuccess ? 'p-button-success' : 'p-button-secondary',
-              ]"
+              :class="['p-button-sm', copySuccess ? 'p-button-success' : 'p-button-secondary']"
               :label="copySuccess ? 'Copiado!' : 'Copiar'"
               @click="handleCopyUrl"
             />

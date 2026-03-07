@@ -6,7 +6,13 @@ import { getDateRangeFromPreset, isValidDateRange } from '@/utils/dateHelpers'
 const STORAGE_KEY = 'financial-dashboard-filters'
 
 const PERIOD_PRESETS: readonly PeriodPreset[] = [
-  'today', '7days', '30days', '90days', 'mtd', 'ytd', 'custom',
+  'today',
+  '7days',
+  '30days',
+  '90days',
+  'mtd',
+  'ytd',
+  'custom',
 ]
 
 function createDefaultFilters(): DashboardFilters {
@@ -43,11 +49,17 @@ export const useFiltersStore = defineStore('filters', () => {
   const filters = ref<DashboardFilters>(createDefaultFilters())
 
   if (import.meta.client) {
-    watch(filters, (val) => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
-      } catch {}
-    }, { deep: true, flush: 'post' })
+    watch(
+      filters,
+      (val) => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
+        } catch {
+          // localStorage may be unavailable
+        }
+      },
+      { deep: true, flush: 'post' },
+    )
   }
 
   function initFromStorage(): void {
@@ -58,7 +70,9 @@ export const useFiltersStore = defineStore('filters', () => {
         const parsed: unknown = JSON.parse(raw)
         if (isValidStoredFilters(parsed)) filters.value = parsed
       }
-    } catch {}
+    } catch {
+      // localStorage may be unavailable
+    }
   }
 
   function setPreset(preset: PeriodPreset): void {
@@ -95,7 +109,9 @@ export const useFiltersStore = defineStore('filters', () => {
   }
 
   function removeRegion(region: string): void {
-    filters.value.regions = filters.value.regions.filter((currentRegion) => currentRegion !== region)
+    filters.value.regions = filters.value.regions.filter(
+      (currentRegion) => currentRegion !== region,
+    )
   }
 
   function setRegions(regions: string[]): void {
@@ -109,7 +125,9 @@ export const useFiltersStore = defineStore('filters', () => {
   }
 
   function removeProduct(product: string): void {
-    filters.value.products = filters.value.products.filter((currentProduct) => currentProduct !== product)
+    filters.value.products = filters.value.products.filter(
+      (currentProduct) => currentProduct !== product,
+    )
   }
 
   function setProducts(products: string[]): void {
@@ -128,16 +146,16 @@ export const useFiltersStore = defineStore('filters', () => {
     filters.value.compareWithPrevious = value
   }
 
-  const hasActiveFilters = computed(() =>
-    filters.value.customers.length > 0 ||
-    filters.value.regions.length > 0 ||
-    filters.value.products.length > 0,
+  const hasActiveFilters = computed(
+    () =>
+      filters.value.customers.length > 0 ||
+      filters.value.regions.length > 0 ||
+      filters.value.products.length > 0,
   )
 
-  const activeFiltersCount = computed(() =>
-    filters.value.customers.length +
-    filters.value.regions.length +
-    filters.value.products.length,
+  const activeFiltersCount = computed(
+    () =>
+      filters.value.customers.length + filters.value.regions.length + filters.value.products.length,
   )
 
   const apiQueryParams = computed(() => {

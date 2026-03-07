@@ -24,52 +24,54 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
       v-if="pending"
       class="card-base"
     >
-      <p class="text-sm text-gray-500">
-        Carregando dados do dashboard...
-      </p>
+      <p class="text-sm text-gray-500">Carregando dados do dashboard...</p>
     </div>
 
     <div
       v-else-if="error"
       class="card-base border border-red-200"
     >
-      <p class="text-sm text-red-700 font-medium">
-        Não foi possível carregar os dados.
-      </p>
-      <p class="text-sm text-gray-500 mt-1">
-        Tente novamente em instantes.
-      </p>
+      <p class="text-sm text-red-700 font-medium">Não foi possível carregar os dados.</p>
+      <p class="text-sm text-gray-500 mt-1">Tente novamente em instantes.</p>
     </div>
 
     <template v-else-if="data">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <KpiCard
           label="Faturamento no período"
-          :valueFormatted="formatCurrencyBRL(data.kpis.revenue.value)"
-          :variationPercentage="data.kpis.revenue.variationPercentage"
+          :value-formatted="formatCurrencyBRL(data.kpis.revenue.value)"
+          :variation-percentage="data.kpis.revenue.variationPercentage"
         />
 
         <KpiCard
           label="Pedidos faturados"
-          :valueFormatted="formatInteger(data.kpis.billedOrders.value)"
-          :variationPercentage="data.kpis.billedOrders.variationPercentage"
+          :value-formatted="formatInteger(data.kpis.billedOrders.value)"
+          :variation-percentage="data.kpis.billedOrders.variationPercentage"
         />
 
         <KpiCard
           label="Ticket médio"
-          :valueFormatted="formatCurrencyBRL(data.kpis.averageTicket.value)"
-          :variationPercentage="data.kpis.averageTicket.variationPercentage"
+          :value-formatted="formatCurrencyBRL(data.kpis.averageTicket.value)"
+          :variation-percentage="data.kpis.averageTicket.variationPercentage"
         />
       </div>
 
       <Card>
         <template #title>
-          <h3 class="text-lg font-semibold">Funil de Conversão</h3>
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-semibold">Funil de Conversão</h3>
+            <span
+              class="text-xs font-normal text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-0.5"
+            >
+              Estimado</span
+            >
+          </div>
         </template>
 
         <template #content>
-          <ConversionMetrics 
-            :metrics="data.conversionMetrics"
+          <ConversionMetrics
+            :paid-count="data.paidTransactionsCount"
+            :compare-enabled="data.kpis.revenue.variationPercentage !== null"
             :loading="pending"
           />
         </template>
@@ -82,8 +84,8 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
 
         <template #content>
           <ClientOnly>
-            <SalesChart 
-              :data="data.salesSeries" 
+            <SalesChart
+              :data="data.salesSeries"
               :loading="pending"
             />
           </ClientOnly>
@@ -98,7 +100,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
 
           <template #content>
             <ClientOnly>
-              <MonthlyComparisonChart 
+              <MonthlyComparisonChart
                 :data="data.monthlyComparison"
                 :loading="pending"
               />
@@ -113,7 +115,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
 
           <template #content>
             <ClientOnly>
-              <TopCustomersChart 
+              <TopCustomersChart
                 :data="data.topCustomers"
                 :loading="pending"
               />
@@ -127,9 +129,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
       v-else
       class="card-base"
     >
-      <p class="text-sm text-gray-500">
-        Nenhum dado disponível.
-      </p>
+      <p class="text-sm text-gray-500">Nenhum dado disponível.</p>
     </div>
   </section>
 </template>

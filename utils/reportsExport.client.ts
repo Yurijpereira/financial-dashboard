@@ -92,7 +92,7 @@ function buildPdfDocument(pageContents: string[]): string {
 
     const pageId = objects.length
     objects.push(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents ${contentId} 0 R /Resources << /Font << /F1 3 0 R >> >> >>`
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents ${contentId} 0 R /Resources << /Font << /F1 3 0 R >> >> >>`,
     )
     pageIds.push(pageId)
   }
@@ -180,7 +180,7 @@ export function exportTransactionsToPdf(transactions: ReportTransaction[]): void
 
   for (const transaction of transactions) {
     lines.push(
-      `${pad(formatDate(transaction.date), 16)} ${pad(transaction.id, 18)} ${pad(transaction.customerName, 22)} ${pad(REPORT_CATEGORY_LABELS[transaction.category], 12)} ${pad(REPORT_STATUS_LABELS[transaction.status], 10)} ${pad(formatCurrency(transaction.amount), 12, true)}`
+      `${pad(formatDate(transaction.date), 16)} ${pad(transaction.id, 18)} ${pad(transaction.customerName, 22)} ${pad(REPORT_CATEGORY_LABELS[transaction.category], 12)} ${pad(REPORT_STATUS_LABELS[transaction.status], 10)} ${pad(formatCurrency(transaction.amount), 12, true)}`,
     )
   }
 

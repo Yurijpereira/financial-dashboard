@@ -30,7 +30,7 @@ function initChart() {
 
   const width = chartContainer.value.clientWidth
   const height = chartContainer.value.clientHeight
-  
+
   if (width === 0 || height === 0) {
     setTimeout(() => initChart(), 100)
     return
@@ -43,10 +43,10 @@ function initChart() {
 function updateChart() {
   if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
 
-  const months = props.data.map(item => item.month)
-  const revenues = props.data.map(item => item.revenue)
-  const orders = props.data.map(item => item.orders)
-  const targets = props.data.map(item => item.target || 0)
+  const months = props.data.map((item) => item.month)
+  const revenues = props.data.map((item) => item.revenue)
+  const orders = props.data.map((item) => item.orders)
+  const targets = props.data.map((item) => item.target || 0)
 
   const option = {
     grid: {
@@ -70,7 +70,7 @@ function updateChart() {
       formatter: (params: any) => {
         let tooltip = `<div style="font-size: 12px;">
           <div style="font-weight: 600; margin-bottom: 6px;">${params[0].name}</div>`
-        
+
         params.forEach((param: any) => {
           const color = param.color
           if (param.seriesName === 'Receita' || param.seriesName === 'Meta') {
@@ -89,7 +89,7 @@ function updateChart() {
               </div>`
           }
         })
-        
+
         tooltip += '</div>'
         return tooltip
       },
@@ -233,14 +233,17 @@ watch(() => props.loading, updateChart)
 </script>
 
 <template>
-  <div class="relative w-full" style="min-height: 320px; height: 320px;">
+  <div
+    class="relative w-full"
+    style="min-height: 320px; height: 320px"
+  >
     <div
       v-if="loading"
       class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
     >
       <p class="text-sm text-gray-500">Carregando gráfico...</p>
     </div>
-    
+
     <div
       ref="chartContainer"
       class="w-full h-full"

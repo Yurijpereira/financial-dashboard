@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import type { EChartsType } from 'echarts'
+import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { useFormatters } from '@/composables/useFormatters'
 
 interface CustomerData {
@@ -34,7 +35,7 @@ function initChart() {
 
   const width = chartContainer.value.clientWidth
   const height = chartContainer.value.clientHeight
-  
+
   if (width === 0 || height === 0) {
     setTimeout(() => initChart(), 100)
     return
@@ -48,8 +49,8 @@ function updateChart() {
   if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
 
   const totalRevenue = props.data.reduce((sum, item) => sum + item.revenue, 0)
-  
-  const chartData = props.data.map(customer => ({
+
+  const chartData = props.data.map((customer) => ({
     name: customer.name,
     value: customer.revenue,
     percentage: (customer.revenue / totalRevenue) * 100,
@@ -67,15 +68,21 @@ function updateChart() {
       textStyle: {
         color: '#374151',
       },
-      formatter: (params: any) => {
+      formatter: (params: CallbackDataParams) => {
+        const data = params.data as {
+          name: string
+          value: number
+          orders: number
+          percentage: number
+        }
         return `
           <div style="font-size: 12px;">
-            <div style="font-weight: 600; margin-bottom: 4px;">${params.name}</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">${data.name}</div>
             <div style="color: #6b7280; margin-bottom: 2px;">
-              ${formatCurrencyBRL(params.value)}
+              ${formatCurrencyBRL(data.value)}
             </div>
             <div style="color: #6b7280; font-size: 11px;">
-              ${params.data.orders} pedidos • ${formatPercentage(params.data.percentage)}
+              ${data.orders} pedidos • ${formatPercentage(data.percentage)}
             </div>
           </div>
         `
@@ -92,7 +99,7 @@ function updateChart() {
       itemWidth: 12,
       itemHeight: 12,
       formatter: (name: string) => {
-        const item = chartData.find(dataPoint => dataPoint.name === name)
+        const item = chartData.find((dataPoint) => dataPoint.name === name)
         if (!item) return name
         return `${name}\n${formatPercentage(item.percentage)}`
       },
@@ -119,8 +126,9 @@ function updateChart() {
             fontSize: 14,
             fontWeight: 'bold',
             color: '#374151',
-            formatter: (params: any) => {
-              return `${formatPercentage(params.data.percentage)}`
+            formatter: (params: CallbackDataParams) => {
+              const data = params.data as { percentage: number }
+              return `${formatPercentage(data.percentage)}`
             },
           },
           itemStyle: {
@@ -158,14 +166,17 @@ watch(() => props.loading, updateChart)
 </script>
 
 <template>
-  <div class="relative w-full" style="min-height: 300px; height: 300px;">
+  <div
+    class="relative w-full"
+    style="min-height: 300px; height: 300px"
+  >
     <div
       v-if="loading"
       class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
     >
       <p class="text-sm text-gray-500">Carregando gráfico...</p>
     </div>
-    
+
     <div
       ref="chartContainer"
       class="w-full h-full"

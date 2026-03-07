@@ -116,9 +116,7 @@ function handleReset(): void {
     <template #content>
       <div class="flex flex-col gap-4">
         <div class="flex items-center justify-between gap-2 flex-wrap">
-          <h2 class="text-base font-semibold text-gray-900">
-            Filtros detalhados
-          </h2>
+          <h2 class="text-base font-semibold text-gray-900">Filtros detalhados</h2>
           <Button
             label="Limpar filtros"
             icon="pi pi-filter-slash"
@@ -130,9 +128,7 @@ function handleReset(): void {
 
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <div class="flex flex-col gap-2 xl:col-span-3">
-            <label class="text-sm font-medium text-gray-700">
-              Busca
-            </label>
+            <label class="text-sm font-medium text-gray-700"> Busca </label>
             <InputText
               v-model="searchText"
               placeholder="Buscar por ID, cliente, produto ou descricao"
@@ -142,9 +138,7 @@ function handleReset(): void {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">
-              Status
-            </label>
+            <label class="text-sm font-medium text-gray-700"> Status </label>
             <MultiSelect
               v-model="selectedStatuses"
               :options="statusOptions"
@@ -158,9 +152,7 @@ function handleReset(): void {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">
-              Categoria
-            </label>
+            <label class="text-sm font-medium text-gray-700"> Categoria </label>
             <MultiSelect
               v-model="selectedCategories"
               :options="categoryOptions"
@@ -174,9 +166,7 @@ function handleReset(): void {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">
-              Pagamento
-            </label>
+            <label class="text-sm font-medium text-gray-700"> Pagamento </label>
             <MultiSelect
               v-model="selectedPaymentMethods"
               :options="paymentMethodOptions"
@@ -190,9 +180,7 @@ function handleReset(): void {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">
-              Valor minimo (R$)
-            </label>
+            <label class="text-sm font-medium text-gray-700"> Valor minimo (R$) </label>
             <InputText
               v-model="minAmountText"
               inputmode="decimal"
@@ -202,9 +190,7 @@ function handleReset(): void {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">
-              Valor maximo (R$)
-            </label>
+            <label class="text-sm font-medium text-gray-700"> Valor maximo (R$) </label>
             <InputText
               v-model="maxAmountText"
               inputmode="decimal"
