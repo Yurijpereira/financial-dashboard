@@ -5,6 +5,7 @@ import Card from 'primevue/card'
 const { user: sessionUser, fetch: refreshSession } = useUserSession()
 
 const loading = ref(true)
+const loadError = ref(false)
 const profileName = ref('')
 const profileEmail = ref('')
 const tenantName = ref('')
@@ -48,6 +49,8 @@ async function loadSettings(): Promise<void> {
     tenantName.value = data.tenant.name
     tenantSlug.value = data.tenant.slug
     tenantCreatedAt.value = data.tenant.createdAt
+  } catch {
+    loadError.value = true
   } finally {
     loading.value = false
   }
@@ -137,6 +140,14 @@ onMounted(loadSettings)
       class="card-base flex items-center justify-center py-12"
     >
       <i class="pi pi-spin pi-spinner text-2xl text-gray-400" />
+    </div>
+
+    <div
+      v-else-if="loadError"
+      class="card-base border border-red-200"
+    >
+      <p class="text-sm text-red-700 font-medium">Não foi possível carregar as configurações.</p>
+      <p class="text-sm text-gray-500 mt-1">Tente novamente em instantes.</p>
     </div>
 
     <template v-else>

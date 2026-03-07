@@ -74,8 +74,6 @@ const TransactionsQuerySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
 
-// ── Enum mapping helpers ──────────────────────────────────
-
 const STATUS_TO_DB: Record<ReportTransactionStatus, TransactionStatus> = {
   paid: TransactionStatus.PAID,
   pending: TransactionStatus.PENDING,
@@ -110,8 +108,6 @@ function toLowerPayment(payment: PaymentMethod): ReportPaymentMethod {
   return payment.toLowerCase() as ReportPaymentMethod
 }
 
-// ── Main handler ──────────────────────────────────────────
-
 export default defineEventHandler(async (event) => {
   const tenantId = event.context.tenantId as string
   const raw = getQuery(event)
@@ -128,7 +124,6 @@ export default defineEventHandler(async (event) => {
   const query = result.data
 
   try {
-    // ── Build WHERE clause ────────────────────────────
     const where: Prisma.TransactionWhereInput = { tenantId }
 
     if (query.startDate || query.endDate) {
@@ -174,7 +169,6 @@ export default defineEventHandler(async (event) => {
       ]
     }
 
-    // ── Build ORDER BY ────────────────────────────────
     type OrderByInput = Prisma.TransactionOrderByWithRelationInput
     let orderBy: OrderByInput
 
@@ -188,7 +182,6 @@ export default defineEventHandler(async (event) => {
       orderBy = { date: query.sortOrder }
     }
 
-    // ── Execute queries in parallel ───────────────────
     const skip = (query.page - 1) * query.pageSize
 
     // Trend window: last 14 days within the filter period
@@ -203,44 +196,49 @@ export default defineEventHandler(async (event) => {
       date: { gte: effectiveTrendStart, lte: trendEnd },
     }
 
-    const [items, total, aggregation, statusGroups, productGroups, trendData] = await Promise.all([
-      prisma.transaction.findMany({
-        where,
-        include: { customer: true, product: true },
-        orderBy,
-        skip,
-        take: query.pageSize,
-      }),
+    const [items, total, aggregation, statusGroups, productGroups, trendData, products] =
+      await Promise.all([
+        prisma.transaction.findMany({
+          where,
+          include: { customer: true, product: true },
+          orderBy,
+          skip,
+          take: query.pageSize,
+        }),
 
-      prisma.transaction.count({ where }),
+        prisma.transaction.count({ where }),
 
-      prisma.transaction.aggregate({
-        where,
-        _sum: { amountCents: true },
-        _count: { id: true },
-      }),
+        prisma.transaction.aggregate({
+          where,
+          _sum: { amountCents: true },
+          _count: { id: true },
+        }),
 
-      prisma.transaction.groupBy({
-        by: ['status'],
-        where,
-        _sum: { amountCents: true },
-        _count: { id: true },
-      }),
+        prisma.transaction.groupBy({
+          by: ['status'],
+          where,
+          _sum: { amountCents: true },
+          _count: { id: true },
+        }),
 
-      prisma.transaction.groupBy({
-        by: ['productId'],
-        where,
-        _sum: { amountCents: true },
-        _count: { id: true },
-      }),
+        prisma.transaction.groupBy({
+          by: ['productId'],
+          where,
+          _sum: { amountCents: true },
+          _count: { id: true },
+        }),
 
-      prisma.transaction.findMany({
-        where: trendWhere,
-        select: { date: true, amountCents: true },
-      }),
-    ])
+        prisma.transaction.findMany({
+          where: trendWhere,
+          select: { date: true, amountCents: true },
+        }),
 
-    // ── Map items to API format ───────────────────────
+        prisma.product.findMany({
+          where: { tenantId },
+          select: { id: true, category: true },
+        }),
+      ])
+
     const mappedItems: ReportTransaction[] = items.map((transaction) => ({
       id: transaction.id,
       date: transaction.date.toISOString(),
@@ -255,21 +253,11 @@ export default defineEventHandler(async (event) => {
       description: transaction.description,
     }))
 
-    // ── Summary ───────────────────────────────────────
     const totalAmount = (aggregation._sum.amountCents ?? 0) / 100
     const totalTransactions = aggregation._count.id
     const averageTicket = totalTransactions > 0 ? totalAmount / totalTransactions : 0
 
-    // ── Category metrics ──────────────────────────────
-    const productIds = productGroups.map((g) => g.productId)
-    const products =
-      productIds.length > 0
-        ? await prisma.product.findMany({
-            where: { id: { in: productIds } },
-            select: { id: true, category: true },
-          })
-        : []
-    const productCategoryMap = new Map(products.map((p) => [p.id, p.category]))
+    const productCategoryMap = new Map(products.map((product) => [product.id, product.category]))
 
     const categoryTotals = new Map<
       ProductCategory,
@@ -305,7 +293,7 @@ export default defineEventHandler(async (event) => {
           transactionsCount: data?.transactionsCount ?? 0,
         }
       })
-        .filter((m) => m.transactionsCount > 0)
+        .filter((metric) => metric.transactionsCount > 0)
         .sort((metricA, metricB) => metricB.totalAmount - metricA.totalAmount)
 
     const byStatus: ReportChartMetric<ReportTransactionStatus>[] = REPORT_TRANSACTION_STATUSES.map(
@@ -319,10 +307,9 @@ export default defineEventHandler(async (event) => {
         }
       },
     )
-      .filter((m) => m.transactionsCount > 0)
+      .filter((metric) => metric.transactionsCount > 0)
       .sort((metricA, metricB) => metricB.totalAmount - metricA.totalAmount)
 
-    // ── Trend (last 14 days of filter period) ────────
     const trendMap = new Map<string, number>()
     for (const transaction of trendData) {
       const day = transaction.date.toISOString().slice(0, 10)
@@ -332,7 +319,6 @@ export default defineEventHandler(async (event) => {
       .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
       .map(([date, cents]) => ({ date, totalAmount: cents / 100 }))
 
-    // ── Response ──────────────────────────────────────
     const response: ReportsTransactionsResponse = {
       items: mappedItems,
       total,

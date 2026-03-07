@@ -71,7 +71,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
         <template #content>
           <ConversionMetrics
             :paid-count="data.paidTransactionsCount"
-            :compare-enabled="!!data.kpis.revenue.variationPercentage"
+            :compare-enabled="data.kpis.revenue.variationPercentage !== null"
             :loading="pending"
           />
         </template>
