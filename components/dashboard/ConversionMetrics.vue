@@ -97,78 +97,96 @@ function getTrendIcon(trend: number | null): string {
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <template v-if="loading">
+      <div
+        v-for="n in 4"
+        :key="n"
+        class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse"
+      >
+        <div class="h-4 bg-gray-200 rounded w-3/4 mb-3" />
+        <div class="h-8 bg-gray-200 rounded w-1/2 mb-2" />
+        <div class="h-2 bg-gray-200 rounded-full mb-2" />
+        <div class="h-3 bg-gray-200 rounded w-2/3" />
+      </div>
+    </template>
+
     <div
-      v-for="(metric, index) in metrics"
-      :key="index"
-      class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
+      v-else-if="paidCount === 0"
+      class="col-span-full"
     >
-      <div class="flex flex-col h-full">
-        <div class="text-sm text-gray-600 mb-3">
-          {{ metric.label }}
-        </div>
+      <DataEmptyState
+        icon="pi pi-filter-slash"
+        message="Nenhum dado de conversão para o período selecionado."
+      />
+    </div>
 
-        <div class="flex-1">
-          <div class="flex items-baseline gap-2 mb-2">
-            <span class="text-2xl font-bold text-gray-900">
-              {{ formatPercentage(calculatePercentage(metric.value, metric.total)) }}
-            </span>
-
-            <span
-              v-if="metric.previousValue !== undefined"
-              :class="
-                getTrendColor(
-                  calculateTrend(
-                    calculatePercentage(metric.value, metric.total),
-                    metric.previousValue
-                      ? calculatePercentage(metric.previousValue, metric.total)
-                      : undefined,
-                  ),
-                )
-              "
-              class="text-xs font-medium"
-            >
-              {{
-                getTrendIcon(
-                  calculateTrend(
-                    calculatePercentage(metric.value, metric.total),
-                    metric.previousValue
-                      ? calculatePercentage(metric.previousValue, metric.total)
-                      : undefined,
-                  ),
-                )
-              }}
-              {{
-                metric.previousValue
-                  ? Math.abs(
-                      calculateTrend(
-                        calculatePercentage(metric.value, metric.total),
-                        calculatePercentage(metric.previousValue, metric.total),
-                      ) || 0,
-                    ).toFixed(1)
-                  : '0.0'
-              }}%
-            </span>
+    <template v-else>
+      <div
+        v-for="(metric, index) in metrics"
+        :key="index"
+        class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
+      >
+        <div class="flex flex-col h-full">
+          <div class="text-sm text-gray-600 mb-3">
+            {{ metric.label }}
           </div>
 
-          <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
-            <div
-              class="bg-emerald-600 h-2 rounded-full transition-all duration-500 ease-out"
-              :style="{ width: `${calculatePercentage(metric.value, metric.total)}%` }"
-            />
-          </div>
+          <div class="flex-1">
+            <div class="flex items-baseline gap-2 mb-2">
+              <span class="text-2xl font-bold text-gray-900">
+                {{ formatPercentage(calculatePercentage(metric.value, metric.total)) }}
+              </span>
 
-          <div class="text-xs text-gray-500">
-            {{ formatInteger(metric.value) }} de {{ formatInteger(metric.total) }}
+              <span
+                v-if="metric.previousValue !== undefined"
+                :class="
+                  getTrendColor(
+                    calculateTrend(
+                      calculatePercentage(metric.value, metric.total),
+                      metric.previousValue
+                        ? calculatePercentage(metric.previousValue, metric.total)
+                        : undefined,
+                    ),
+                  )
+                "
+                class="text-xs font-medium"
+              >
+                {{
+                  getTrendIcon(
+                    calculateTrend(
+                      calculatePercentage(metric.value, metric.total),
+                      metric.previousValue
+                        ? calculatePercentage(metric.previousValue, metric.total)
+                        : undefined,
+                    ),
+                  )
+                }}
+                {{
+                  metric.previousValue
+                    ? Math.abs(
+                        calculateTrend(
+                          calculatePercentage(metric.value, metric.total),
+                          calculatePercentage(metric.previousValue, metric.total),
+                        ) || 0,
+                      ).toFixed(1)
+                    : '0.0'
+                }}%
+              </span>
+            </div>
+
+            <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
+              <div
+                class="bg-emerald-600 h-2 rounded-full transition-all duration-500 ease-out"
+                :style="{ width: `${calculatePercentage(metric.value, metric.total)}%` }"
+              />
+            </div>
+
+            <div class="text-xs text-gray-500">
+              {{ formatInteger(metric.value) }} de {{ formatInteger(metric.total) }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <div
-      v-if="loading"
-      class="col-span-full flex items-center justify-center py-8"
-    >
-      <p class="text-sm text-gray-500">Carregando métricas...</p>
-    </div>
+    </template>
   </div>
 </template>

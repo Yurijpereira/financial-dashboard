@@ -195,23 +195,28 @@ watch(
     style="height: 320px"
   >
     <div
-      v-if="loading"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
+      v-if="loading && metrics.length === 0"
+      class="absolute inset-0 z-10"
     >
-      <p class="text-sm text-gray-500">Atualizando grafico...</p>
+      <ChartSkeleton height="320px" />
     </div>
 
     <div
-      v-if="!loading && metrics.length === 0"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
+      v-else-if="loading"
+      class="absolute inset-0 flex items-center justify-center bg-white/60 rounded z-10"
     >
-      <p class="text-sm text-gray-500">Sem dados para os filtros aplicados.</p>
+      <i class="pi pi-spin pi-spinner text-2xl text-gray-400" />
     </div>
+
+    <DataEmptyState
+      v-else-if="metrics.length === 0"
+      icon="pi pi-chart-bar"
+      message="Sem dados de categorias para os filtros aplicados."
+    />
 
     <div
       ref="chartContainer"
       class="w-full h-full"
-      :class="{ 'opacity-30': loading || metrics.length === 0 }"
     />
   </div>
 </template>

@@ -10,7 +10,7 @@ import MonthlyComparisonChart from '@/components/dashboard/MonthlyComparisonChar
 import { useFinancialSummaryQuery } from '@/composables/useFinancialSummaryQuery'
 import { useFormatters } from '@/composables/useFormatters'
 
-const { data, pending, error, refresh } = useFinancialSummaryQuery()
+const { data, pending, isFetching, error, refresh } = useFinancialSummaryQuery()
 const { formatCurrencyBRL, formatInteger } = useFormatters()
 </script>
 
@@ -22,9 +22,73 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
 
     <div
       v-if="pending"
-      class="card-base"
+      class="flex flex-col gap-6"
     >
-      <p class="text-sm text-gray-500">Carregando dados do dashboard...</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <KpiCard
+          label="Faturamento no período"
+          value-formatted=""
+          loading
+        />
+        <KpiCard
+          label="Pedidos faturados"
+          value-formatted=""
+          loading
+        />
+        <KpiCard
+          label="Ticket médio"
+          value-formatted=""
+          loading
+        />
+      </div>
+
+      <Card>
+        <template #title>
+          <div class="h-5 bg-gray-200 rounded w-48 animate-pulse" />
+        </template>
+        <template #content>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              v-for="n in 4"
+              :key="n"
+              class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse"
+            >
+              <div class="h-4 bg-gray-200 rounded w-3/4 mb-3" />
+              <div class="h-8 bg-gray-200 rounded w-1/2 mb-2" />
+              <div class="h-2 bg-gray-200 rounded-full mb-2" />
+              <div class="h-3 bg-gray-200 rounded w-2/3" />
+            </div>
+          </div>
+        </template>
+      </Card>
+
+      <Card>
+        <template #title>
+          <div class="h-5 bg-gray-200 rounded w-40 animate-pulse" />
+        </template>
+        <template #content>
+          <ChartSkeleton height="300px" />
+        </template>
+      </Card>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <template #title>
+            <div class="h-5 bg-gray-200 rounded w-44 animate-pulse" />
+          </template>
+          <template #content>
+            <ChartSkeleton height="320px" />
+          </template>
+        </Card>
+        <Card>
+          <template #title>
+            <div class="h-5 bg-gray-200 rounded w-32 animate-pulse" />
+          </template>
+          <template #content>
+            <ChartSkeleton height="300px" />
+          </template>
+        </Card>
+      </div>
     </div>
 
     <div
@@ -78,7 +142,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
           <ConversionMetrics
             :paid-count="data.paidTransactionsCount"
             :compare-enabled="data.kpis.revenue.variationPercentage !== null"
-            :loading="pending"
+            :loading="isFetching"
           />
         </template>
       </Card>
@@ -92,7 +156,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
           <ClientOnly>
             <SalesChart
               :data="data.salesSeries"
-              :loading="pending"
+              :loading="isFetching"
             />
           </ClientOnly>
         </template>
@@ -108,7 +172,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
             <ClientOnly>
               <MonthlyComparisonChart
                 :data="data.monthlyComparison"
-                :loading="pending"
+                :loading="isFetching"
               />
             </ClientOnly>
           </template>
@@ -123,7 +187,7 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
             <ClientOnly>
               <TopCustomersChart
                 :data="data.topCustomers"
-                :loading="pending"
+                :loading="isFetching"
               />
             </ClientOnly>
           </template>
@@ -131,11 +195,10 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
       </div>
     </template>
 
-    <div
+    <DataEmptyState
       v-else
-      class="card-base"
-    >
-      <p class="text-sm text-gray-500">Nenhum dado disponível.</p>
-    </div>
+      icon="pi pi-database"
+      message="Nenhum dado disponível para o período selecionado."
+    />
   </section>
 </template>

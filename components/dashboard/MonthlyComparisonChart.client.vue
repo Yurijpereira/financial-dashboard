@@ -238,16 +238,28 @@ watch(() => props.loading, updateChart)
     style="min-height: 320px; height: 320px"
   >
     <div
-      v-if="loading"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
+      v-if="loading && (!data || data.length === 0)"
+      class="absolute inset-0 z-10"
     >
-      <p class="text-sm text-gray-500">Carregando gráfico...</p>
+      <ChartSkeleton height="320px" />
     </div>
+
+    <div
+      v-else-if="loading"
+      class="absolute inset-0 flex items-center justify-center bg-white/60 rounded z-10"
+    >
+      <i class="pi pi-spin pi-spinner text-2xl text-gray-400" />
+    </div>
+
+    <DataEmptyState
+      v-else-if="!data || data.length === 0"
+      icon="pi pi-chart-bar"
+      message="Nenhum dado de comparação mensal para o período selecionado."
+    />
 
     <div
       ref="chartContainer"
       class="w-full h-full"
-      :class="{ 'opacity-30': loading }"
     />
   </div>
 </template>
