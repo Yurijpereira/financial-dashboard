@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import Card from 'primevue/card'
+import { useAppToast } from '@/composables/useAppToast'
 
 const { user: sessionUser, fetch: refreshSession } = useUserSession()
+const toast = useAppToast()
 
 const loading = ref(true)
 const loadError = ref(false)
@@ -17,10 +19,6 @@ const tenantCreatedAt = ref('')
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-
-const profileMsg = ref<{ type: 'success' | 'error'; text: string } | null>(null)
-const passwordMsg = ref<{ type: 'success' | 'error'; text: string } | null>(null)
-const tenantMsg = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 
 const savingProfile = ref(false)
 const savingPassword = ref(false)
@@ -59,7 +57,6 @@ async function loadSettings(): Promise<void> {
 async function saveProfile(): Promise<void> {
   if (savingProfile.value) return
   savingProfile.value = true
-  profileMsg.value = null
 
   try {
     await $fetch('/api/settings/profile', {
@@ -67,10 +64,9 @@ async function saveProfile(): Promise<void> {
       body: { name: profileName.value, email: profileEmail.value },
     })
     await refreshSession()
-    profileMsg.value = { type: 'success', text: 'Perfil atualizado com sucesso.' }
-  } catch (error: unknown) {
-    const e = error as { data?: { message?: string } }
-    profileMsg.value = { type: 'error', text: e.data?.message || 'Erro ao salvar perfil.' }
+    toast.success({ detail: 'Perfil atualizado com sucesso.' })
+  } catch (err: unknown) {
+    toast.apiError(err, 'Erro ao salvar perfil.')
   } finally {
     savingProfile.value = false
   }
@@ -79,11 +75,10 @@ async function saveProfile(): Promise<void> {
 async function savePassword(): Promise<void> {
   if (savingPassword.value) return
   if (newPassword.value !== confirmPassword.value) {
-    passwordMsg.value = { type: 'error', text: 'As senhas não coincidem.' }
+    toast.warn({ detail: 'As senhas não coincidem.' })
     return
   }
   savingPassword.value = true
-  passwordMsg.value = null
 
   try {
     await $fetch('/api/settings/password', {
@@ -93,10 +88,9 @@ async function savePassword(): Promise<void> {
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
-    passwordMsg.value = { type: 'success', text: 'Senha alterada com sucesso.' }
-  } catch (error: unknown) {
-    const e = error as { data?: { message?: string } }
-    passwordMsg.value = { type: 'error', text: e.data?.message || 'Erro ao alterar senha.' }
+    toast.success({ detail: 'Senha alterada com sucesso.' })
+  } catch (err: unknown) {
+    toast.apiError(err, 'Erro ao alterar senha.')
   } finally {
     savingPassword.value = false
   }
@@ -105,7 +99,6 @@ async function savePassword(): Promise<void> {
 async function saveTenant(): Promise<void> {
   if (savingTenant.value) return
   savingTenant.value = true
-  tenantMsg.value = null
 
   try {
     const res = await $fetch<{ tenant: { id: string; name: string; slug: string } }>(
@@ -116,13 +109,9 @@ async function saveTenant(): Promise<void> {
       },
     )
     tenantSlug.value = res.tenant.slug
-    tenantMsg.value = { type: 'success', text: 'Dados da empresa atualizados.' }
-  } catch (error: unknown) {
-    const e = error as { data?: { message?: string } }
-    tenantMsg.value = {
-      type: 'error',
-      text: e.data?.message || 'Erro ao salvar dados da empresa.',
-    }
+    toast.success({ detail: 'Dados da empresa atualizados.' })
+  } catch (err: unknown) {
+    toast.apiError(err, 'Erro ao salvar dados da empresa.')
   } finally {
     savingTenant.value = false
   }
@@ -204,14 +193,6 @@ onMounted(loadSettings)
               >
             </div>
 
-            <Message
-              v-if="profileMsg"
-              :severity="profileMsg.type === 'success' ? 'success' : 'error'"
-              :closable="false"
-            >
-              {{ profileMsg.text }}
-            </Message>
-
             <div class="flex justify-end">
               <Button
                 type="submit"
@@ -286,14 +267,6 @@ onMounted(loadSettings)
               </div>
             </div>
 
-            <Message
-              v-if="passwordMsg"
-              :severity="passwordMsg.type === 'success' ? 'success' : 'error'"
-              :closable="false"
-            >
-              {{ passwordMsg.text }}
-            </Message>
-
             <div class="flex justify-end">
               <Button
                 type="submit"
@@ -344,14 +317,6 @@ onMounted(loadSettings)
                 <strong class="text-gray-700">{{ formatDate(tenantCreatedAt) }}</strong></span
               >
             </div>
-
-            <Message
-              v-if="tenantMsg"
-              :severity="tenantMsg.type === 'success' ? 'success' : 'error'"
-              :closable="false"
-            >
-              {{ tenantMsg.text }}
-            </Message>
 
             <div class="flex justify-end">
               <Button
