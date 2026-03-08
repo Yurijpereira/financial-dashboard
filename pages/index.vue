@@ -10,7 +10,7 @@ import MonthlyComparisonChart from '@/components/dashboard/MonthlyComparisonChar
 import { useFinancialSummaryQuery } from '@/composables/useFinancialSummaryQuery'
 import { useFormatters } from '@/composables/useFormatters'
 
-const { data, pending, error } = useFinancialSummaryQuery()
+const { data, pending, error, refresh } = useFinancialSummaryQuery()
 const { formatCurrencyBRL, formatInteger } = useFormatters()
 </script>
 
@@ -33,6 +33,12 @@ const { formatCurrencyBRL, formatInteger } = useFormatters()
     >
       <p class="text-sm text-red-700 font-medium">Não foi possível carregar os dados.</p>
       <p class="text-sm text-gray-500 mt-1">Tente novamente em instantes.</p>
+      <Button
+        label="Tentar novamente"
+        icon="pi pi-refresh"
+        class="p-button-sm p-button-outlined mt-3"
+        @click="refresh()"
+      />
     </div>
 
     <template v-else-if="data">

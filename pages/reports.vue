@@ -43,6 +43,8 @@ const { data, pending, error, queryParams } = useReportsTransactionsQuery({
   advancedQueryParams,
 })
 
+const toast = useAppToast()
+
 const transactions = computed(() => data.value?.items ?? [])
 const total = computed(() => data.value?.total ?? 0)
 const summary = computed(() => {
@@ -122,10 +124,14 @@ async function exportData(format: 'excel' | 'pdf'): Promise<void> {
     const exportTools = await import('@/utils/reportsExport.client')
     if (format === 'excel') {
       exportTools.exportTransactionsToExcel(exportItems)
+      toast.success({ detail: 'Exportação Excel concluída.' })
       return
     }
 
     exportTools.exportTransactionsToPdf(exportItems)
+    toast.success({ detail: 'Exportação PDF concluída.' })
+  } catch (err: unknown) {
+    toast.apiError(err, 'Falha ao exportar dados.')
   } finally {
     isExporting.value = false
   }

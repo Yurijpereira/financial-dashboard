@@ -2,7 +2,6 @@ import { defineNuxtPlugin } from '#app'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import { definePreset } from '@primevue/themes'
-
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
@@ -14,6 +13,8 @@ import MultiSelect from 'primevue/multiselect'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
 import Checkbox from 'primevue/checkbox'
+import Toast from 'primevue/toast'
+import ToastService from 'primevue/toastservice'
 
 const CustomPreset = definePreset(Aura, {
   semantic: {
@@ -48,6 +49,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     },
   })
 
+  nuxtApp.vueApp.use(ToastService)
+
   nuxtApp.vueApp.component('Button', Button)
   nuxtApp.vueApp.component('Card', Card)
   nuxtApp.vueApp.component('Dropdown', Dropdown)
@@ -59,4 +62,5 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('Dialog', Dialog)
   nuxtApp.vueApp.component('Message', Message)
   nuxtApp.vueApp.component('Checkbox', Checkbox)
+  nuxtApp.vueApp.component('Toast', Toast)
 })
