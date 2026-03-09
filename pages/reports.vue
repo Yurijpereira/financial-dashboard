@@ -34,7 +34,7 @@ const {
   resetAdvancedFilters,
 } = useReportsFilters()
 
-const { data, pending, error, queryParams } = useReportsTransactionsQuery({
+const { data, pending, isFetching, error, queryParams } = useReportsTransactionsQuery({
   page,
   pageSize,
   sortField,
@@ -162,40 +162,53 @@ async function handleExportPdf(): Promise<void> {
     />
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-      <div class="card-base">
-        <p class="text-sm text-gray-500">Transacoes filtradas</p>
-        <p class="text-2xl font-semibold mt-1">{{ summary.totalTransactions }}</p>
-      </div>
-
-      <div class="card-base">
-        <p class="text-sm text-gray-500">Valor total filtrado</p>
-        <p class="text-2xl font-semibold mt-1">{{ formatCurrency(summary.totalAmount) }}</p>
-      </div>
-
-      <div class="card-base">
-        <p class="text-sm text-gray-500">Ticket medio</p>
-        <p class="text-2xl font-semibold mt-1">{{ formatCurrency(summary.averageTicket) }}</p>
-      </div>
-
-      <div class="card-base">
-        <p class="text-sm text-gray-500">Exportacao</p>
-        <div class="mt-3 flex gap-2">
-          <Button
-            label="Excel"
-            icon="pi pi-file-excel"
-            class="p-button-sm p-button-outlined"
-            :disabled="pending || isExporting || total === 0"
-            @click="handleExportExcel"
-          />
-          <Button
-            label="PDF"
-            icon="pi pi-file-pdf"
-            class="p-button-sm p-button-outlined"
-            :disabled="pending || isExporting || total === 0"
-            @click="handleExportPdf"
-          />
+      <template v-if="pending">
+        <div
+          v-for="n in 4"
+          :key="n"
+          class="card-base animate-pulse"
+        >
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+          <div class="h-8 bg-gray-200 rounded w-1/2 mt-1" />
         </div>
-      </div>
+      </template>
+
+      <template v-else>
+        <div class="card-base">
+          <p class="text-sm text-gray-500">Transações filtradas</p>
+          <p class="text-2xl font-semibold mt-1">{{ summary.totalTransactions }}</p>
+        </div>
+
+        <div class="card-base">
+          <p class="text-sm text-gray-500">Valor total filtrado</p>
+          <p class="text-2xl font-semibold mt-1">{{ formatCurrency(summary.totalAmount) }}</p>
+        </div>
+
+        <div class="card-base">
+          <p class="text-sm text-gray-500">Ticket médio</p>
+          <p class="text-2xl font-semibold mt-1">{{ formatCurrency(summary.averageTicket) }}</p>
+        </div>
+
+        <div class="card-base">
+          <p class="text-sm text-gray-500">Exportação</p>
+          <div class="mt-3 flex gap-2">
+            <Button
+              label="Excel"
+              icon="pi pi-file-excel"
+              class="p-button-sm p-button-outlined"
+              :disabled="pending || isExporting || total === 0"
+              @click="handleExportExcel"
+            />
+            <Button
+              label="PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-sm p-button-outlined"
+              :disabled="pending || isExporting || total === 0"
+              @click="handleExportPdf"
+            />
+          </div>
+        </div>
+      </template>
     </div>
 
     <Card>
@@ -226,7 +239,7 @@ async function handleExportPdf(): Promise<void> {
           <TransactionsCategoryChart
             :metrics="categoryMetrics"
             :selected-category="selectedCategory"
-            :loading="pending"
+            :loading="isFetching"
             @select-category="handleCategoryDrilldown"
           />
         </ClientOnly>
@@ -236,9 +249,9 @@ async function handleExportPdf(): Promise<void> {
     <Card>
       <template #title>
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold">Transacoes detalhadas</h2>
+          <h2 class="text-lg font-semibold">Transações detalhadas</h2>
           <span class="text-sm text-gray-500 mr-5">
-            {{ hasActiveAdvancedFilters ? 'Filtros avancados ativos' : 'Visao geral' }}
+            {{ hasActiveAdvancedFilters ? 'Filtros avançados ativos' : 'Visão geral' }}
           </span>
         </div>
       </template>
@@ -256,7 +269,7 @@ async function handleExportPdf(): Promise<void> {
         <ClientOnly>
           <TransactionsTable
             :items="transactions"
-            :loading="pending"
+            :loading="isFetching"
             :total="total"
             :page="page"
             :page-size="pageSize"

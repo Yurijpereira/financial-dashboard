@@ -131,7 +131,7 @@ function handleReset(): void {
             <label class="text-sm font-medium text-gray-700"> Busca </label>
             <InputText
               v-model="searchText"
-              placeholder="Buscar por ID, cliente, produto ou descricao"
+              placeholder="Buscar por ID, cliente, produto ou descrição"
               :disabled="loading"
               class="w-full"
             />

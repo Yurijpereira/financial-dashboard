@@ -23,6 +23,11 @@ let chartInstance: EChartsType | null = null
 
 const { formatCurrencyBRL } = useFormatters()
 
+type TooltipParam = {
+  name: string
+  value: number
+}
+
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('pt-BR', {
@@ -47,7 +52,12 @@ function initChart() {
 }
 
 function updateChart() {
-  if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
+  if (!chartInstance) return
+
+  if (props.loading || !props.data || props.data.length === 0) {
+    chartInstance.clear()
+    return
+  }
 
   const dates = props.data.map((item) => formatDate(item.date))
   const values = props.data.map((item) => item.value)
@@ -68,8 +78,9 @@ function updateChart() {
       textStyle: {
         color: '#374151',
       },
-      formatter: (params: any) => {
+      formatter: (params: TooltipParam[]) => {
         const param = params[0]
+        if (!param) return ''
         return `
           <div style="font-size: 12px;">
             <div style="color: #6b7280; margin-bottom: 4px;">${param.name}</div>
@@ -186,16 +197,30 @@ watch(() => props.loading, updateChart)
     style="min-height: 300px; height: 300px"
   >
     <div
-      v-if="loading"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
+      v-if="loading && (!data || data.length === 0)"
+      class="absolute inset-0 z-10"
     >
-      <p class="text-sm text-gray-500">Carregando gráfico...</p>
+      <ChartSkeleton height="300px" />
     </div>
 
     <div
+      v-else-if="loading"
+      class="absolute inset-0 flex items-center justify-center bg-white/60 rounded z-10"
+    >
+      <i class="pi pi-spin pi-spinner text-2xl text-gray-400" />
+    </div>
+
+    <DataEmptyState
+      v-else-if="!data || data.length === 0"
+      class="absolute inset-0 z-10"
+      icon="pi pi-chart-line"
+      message="Nenhuma venda encontrada para o período selecionado."
+    />
+
+    <div
+      v-show="data && data.length > 0"
       ref="chartContainer"
       class="w-full h-full"
-      :class="{ 'opacity-30': loading }"
     />
   </div>
 </template>

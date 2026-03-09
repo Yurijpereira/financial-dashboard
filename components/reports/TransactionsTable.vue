@@ -124,7 +124,7 @@ function handleSort(event: DataTableSortEvent): void {
 
     <Column
       field="description"
-      header="Descricao"
+      header="Descrição"
       style="min-width: 16rem"
     />
 
@@ -158,9 +158,10 @@ function handleSort(event: DataTableSortEvent): void {
     </Column>
 
     <template #empty>
-      <div class="text-sm text-gray-500 py-4">
-        Nenhuma transacao encontrada para os filtros atuais.
-      </div>
+      <DataEmptyState
+        icon="pi pi-inbox"
+        message="Nenhuma transação encontrada para os filtros atuais."
+      />
     </template>
   </DataTable>
 </template>

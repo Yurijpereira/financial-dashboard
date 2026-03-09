@@ -3,11 +3,17 @@ import { computed } from 'vue'
 
 type VariationStatus = 'positive' | 'negative' | 'neutral' | 'hidden'
 
-const props = defineProps<{
-  label: string
-  valueFormatted: string
-  variationPercentage?: number | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    label: string
+    valueFormatted: string
+    variationPercentage?: number | null
+    loading?: boolean
+  }>(),
+  {
+    loading: false,
+  },
+)
 
 const variationStatus = computed<VariationStatus>(() => {
   const variationValue = props.variationPercentage
@@ -74,7 +80,18 @@ const variationIconClassName = computed(() => {
       {{ label }}
     </span>
 
-    <div class="flex items-center justify-between gap-3">
+    <div
+      v-if="loading"
+      class="flex items-center justify-between gap-3 animate-pulse"
+    >
+      <div class="h-8 bg-gray-200 rounded w-32" />
+      <div class="h-6 bg-gray-100 rounded-full w-16" />
+    </div>
+
+    <div
+      v-else
+      class="flex items-center justify-between gap-3"
+    >
       <strong class="text-2xl font-semibold">
         {{ valueFormatted }}
       </strong>

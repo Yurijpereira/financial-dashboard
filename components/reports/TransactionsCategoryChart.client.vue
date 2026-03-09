@@ -116,7 +116,7 @@ function renderChart(): void {
           <div style="font-size: 12px;">
             <div style="font-weight: 600; margin-bottom: 4px;">${item.label}</div>
             <div>${formatCurrency(item.value)}</div>
-            <div style="color: #6b7280; margin-top: 2px;">${item.transactionsCount} transacoes</div>
+            <div style="color: #6b7280; margin-top: 2px;">${item.transactionsCount} transações</div>
           </div>
         `
       },
@@ -195,23 +195,30 @@ watch(
     style="height: 320px"
   >
     <div
-      v-if="loading"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
+      v-if="loading && metrics.length === 0"
+      class="absolute inset-0 z-10"
     >
-      <p class="text-sm text-gray-500">Atualizando grafico...</p>
+      <ChartSkeleton height="320px" />
     </div>
 
     <div
-      v-if="!loading && metrics.length === 0"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
+      v-else-if="loading"
+      class="absolute inset-0 flex items-center justify-center bg-white/60 rounded z-10"
     >
-      <p class="text-sm text-gray-500">Sem dados para os filtros aplicados.</p>
+      <i class="pi pi-spin pi-spinner text-2xl text-gray-400" />
     </div>
 
+    <DataEmptyState
+      v-else-if="metrics.length === 0"
+      class="absolute inset-0 z-10"
+      icon="pi pi-chart-bar"
+      message="Sem dados de categorias para os filtros aplicados."
+    />
+
     <div
+      v-show="metrics.length > 0"
       ref="chartContainer"
       class="w-full h-full"
-      :class="{ 'opacity-30': loading || metrics.length === 0 }"
     />
   </div>
 </template>

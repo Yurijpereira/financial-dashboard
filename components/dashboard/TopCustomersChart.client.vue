@@ -46,7 +46,12 @@ function initChart() {
 }
 
 function updateChart() {
-  if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
+  if (!chartInstance) return
+
+  if (props.loading || !props.data || props.data.length === 0) {
+    chartInstance.clear()
+    return
+  }
 
   const totalRevenue = props.data.reduce((sum, item) => sum + item.revenue, 0)
 
@@ -171,16 +176,30 @@ watch(() => props.loading, updateChart)
     style="min-height: 300px; height: 300px"
   >
     <div
-      v-if="loading"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded z-10"
+      v-if="loading && (!data || data.length === 0)"
+      class="absolute inset-0 z-10"
     >
-      <p class="text-sm text-gray-500">Carregando gráfico...</p>
+      <ChartSkeleton height="300px" />
     </div>
 
     <div
+      v-else-if="loading"
+      class="absolute inset-0 flex items-center justify-center bg-white/60 rounded z-10"
+    >
+      <i class="pi pi-spin pi-spinner text-2xl text-gray-400" />
+    </div>
+
+    <DataEmptyState
+      v-else-if="!data || data.length === 0"
+      class="absolute inset-0 z-10"
+      icon="pi pi-users"
+      message="Nenhum cliente encontrado para o período selecionado."
+    />
+
+    <div
+      v-show="data && data.length > 0"
       ref="chartContainer"
       class="w-full h-full"
-      :class="{ 'opacity-30': loading }"
     />
   </div>
 </template>

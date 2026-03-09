@@ -22,17 +22,17 @@ export const REPORT_STATUS_LABELS: Record<ReportTransactionStatus, string> = {
 
 export const REPORT_CATEGORY_LABELS: Record<ReportTransactionCategory, string> = {
   subscription: 'Assinatura',
-  service: 'Servico',
+  service: 'Serviço',
   hardware: 'Hardware',
   support: 'Suporte',
   training: 'Treinamento',
 }
 
 export const REPORT_PAYMENT_METHOD_LABELS: Record<ReportPaymentMethod, string> = {
-  credit_card: 'Cartao de credito',
+  credit_card: 'Cartão de crédito',
   pix: 'Pix',
   bank_slip: 'Boleto',
-  bank_transfer: 'Transferencia',
+  bank_transfer: 'Transferência',
 }
 
 export type ReportTransaction = {
