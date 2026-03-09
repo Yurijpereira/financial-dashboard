@@ -116,7 +116,7 @@ function renderChart(): void {
           <div style="font-size: 12px;">
             <div style="font-weight: 600; margin-bottom: 4px;">${item.label}</div>
             <div>${formatCurrency(item.value)}</div>
-            <div style="color: #6b7280; margin-top: 2px;">${item.transactionsCount} transacoes</div>
+            <div style="color: #6b7280; margin-top: 2px;">${item.transactionsCount} transações</div>
           </div>
         `
       },
@@ -210,11 +210,13 @@ watch(
 
     <DataEmptyState
       v-else-if="metrics.length === 0"
+      class="absolute inset-0 z-10"
       icon="pi pi-chart-bar"
       message="Sem dados de categorias para os filtros aplicados."
     />
 
     <div
+      v-show="metrics.length > 0"
       ref="chartContainer"
       class="w-full h-full"
     />

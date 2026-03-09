@@ -152,7 +152,7 @@ export function exportTransactionsToExcel(transactions: ReportTransaction[]): vo
               <th>Status</th>
               <th>Pagamento</th>
               <th>Valor</th>
-              <th>Descricao</th>
+              <th>Descrição</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -171,7 +171,7 @@ export function exportTransactionsToExcel(transactions: ReportTransaction[]): vo
 export function exportTransactionsToPdf(transactions: ReportTransaction[]): void {
   const linesPerPage = 48
   const lines: string[] = [
-    'Relatorio detalhado de transacoes',
+    'Relatório detalhado de transações',
     `Gerado em: ${formatDate(new Date().toISOString())}`,
     '',
     `${pad('Data', 16)} ${pad('ID', 18)} ${pad('Cliente', 22)} ${pad('Categoria', 12)} ${pad('Status', 10)} ${pad('Valor', 12, true)}`,

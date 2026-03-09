@@ -16,6 +16,7 @@ withDefaults(
     <i
       :class="icon"
       class="text-4xl mb-3"
+      aria-hidden="true"
     />
     <p class="text-sm text-gray-500 text-center max-w-xs">
       {{ message }}

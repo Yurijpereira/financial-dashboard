@@ -124,7 +124,7 @@ function handleSort(event: DataTableSortEvent): void {
 
     <Column
       field="description"
-      header="Descricao"
+      header="Descrição"
       style="min-width: 16rem"
     />
 

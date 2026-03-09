@@ -25,6 +25,13 @@ let chartInstance: EChartsType | null = null
 
 const { formatCurrencyBRL } = useFormatters()
 
+type TooltipParam = {
+  name: string
+  value: number
+  seriesName: string
+  color: string
+}
+
 function initChart() {
   if (!chartContainer.value) return
 
@@ -41,7 +48,12 @@ function initChart() {
 }
 
 function updateChart() {
-  if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
+  if (!chartInstance) return
+
+  if (props.loading || !props.data || props.data.length === 0) {
+    chartInstance.clear()
+    return
+  }
 
   const months = props.data.map((item) => item.month)
   const revenues = props.data.map((item) => item.revenue)
@@ -67,11 +79,13 @@ function updateChart() {
       textStyle: {
         color: '#374151',
       },
-      formatter: (params: any) => {
+      formatter: (params: TooltipParam[]) => {
+        const first = params[0]
+        if (!first) return ''
         let tooltip = `<div style="font-size: 12px;">
-          <div style="font-weight: 600; margin-bottom: 6px;">${params[0].name}</div>`
+          <div style="font-weight: 600; margin-bottom: 6px;">${first.name}</div>`
 
-        params.forEach((param: any) => {
+        params.forEach((param: TooltipParam) => {
           const color = param.color
           if (param.seriesName === 'Receita' || param.seriesName === 'Meta') {
             tooltip += `
@@ -253,11 +267,13 @@ watch(() => props.loading, updateChart)
 
     <DataEmptyState
       v-else-if="!data || data.length === 0"
+      class="absolute inset-0 z-10"
       icon="pi pi-chart-bar"
       message="Nenhum dado de comparação mensal para o período selecionado."
     />
 
     <div
+      v-show="data && data.length > 0"
       ref="chartContainer"
       class="w-full h-full"
     />

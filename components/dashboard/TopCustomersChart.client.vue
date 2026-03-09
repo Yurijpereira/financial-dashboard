@@ -46,7 +46,12 @@ function initChart() {
 }
 
 function updateChart() {
-  if (!chartInstance || props.loading || !props.data || props.data.length === 0) return
+  if (!chartInstance) return
+
+  if (props.loading || !props.data || props.data.length === 0) {
+    chartInstance.clear()
+    return
+  }
 
   const totalRevenue = props.data.reduce((sum, item) => sum + item.revenue, 0)
 
@@ -186,11 +191,13 @@ watch(() => props.loading, updateChart)
 
     <DataEmptyState
       v-else-if="!data || data.length === 0"
+      class="absolute inset-0 z-10"
       icon="pi pi-users"
       message="Nenhum cliente encontrado para o período selecionado."
     />
 
     <div
+      v-show="data && data.length > 0"
       ref="chartContainer"
       class="w-full h-full"
     />

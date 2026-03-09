@@ -175,7 +175,7 @@ async function handleExportPdf(): Promise<void> {
 
       <template v-else>
         <div class="card-base">
-          <p class="text-sm text-gray-500">Transacoes filtradas</p>
+          <p class="text-sm text-gray-500">Transações filtradas</p>
           <p class="text-2xl font-semibold mt-1">{{ summary.totalTransactions }}</p>
         </div>
 
@@ -185,12 +185,12 @@ async function handleExportPdf(): Promise<void> {
         </div>
 
         <div class="card-base">
-          <p class="text-sm text-gray-500">Ticket medio</p>
+          <p class="text-sm text-gray-500">Ticket médio</p>
           <p class="text-2xl font-semibold mt-1">{{ formatCurrency(summary.averageTicket) }}</p>
         </div>
 
         <div class="card-base">
-          <p class="text-sm text-gray-500">Exportacao</p>
+          <p class="text-sm text-gray-500">Exportação</p>
           <div class="mt-3 flex gap-2">
             <Button
               label="Excel"
@@ -249,9 +249,9 @@ async function handleExportPdf(): Promise<void> {
     <Card>
       <template #title>
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold">Transacoes detalhadas</h2>
+          <h2 class="text-lg font-semibold">Transações detalhadas</h2>
           <span class="text-sm text-gray-500 mr-5">
-            {{ hasActiveAdvancedFilters ? 'Filtros avancados ativos' : 'Visao geral' }}
+            {{ hasActiveAdvancedFilters ? 'Filtros avançados ativos' : 'Visão geral' }}
           </span>
         </div>
       </template>
