@@ -41,6 +41,7 @@ export type ReportTransaction = {
   customerId: string
   customerName: string
   region: string
+  productId: string
   product: string
   category: ReportTransactionCategory
   paymentMethod: ReportPaymentMethod
@@ -104,8 +105,8 @@ export type TransactionResponse = {
     date: string
     customerId: string
     productId: string
-    status: string
-    paymentMethod: string
+    status: ReportTransactionStatus
+    paymentMethod: ReportPaymentMethod
     amount: number
     description: string
   }

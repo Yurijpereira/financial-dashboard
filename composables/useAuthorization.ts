@@ -1,5 +1,5 @@
-import type { AppRole, AppPermission } from '@/server/utils/rbac'
-import { hasMinRole as checkMinRole, hasPermission as checkPermission } from '@/server/utils/rbac'
+import type { AppRole, AppPermission } from '@/shared/rbac'
+import { hasMinRole as checkMinRole, hasPermission as checkPermission } from '@/shared/rbac'
 
 const ROLE_LABELS: Record<AppRole, string> = {
   ADMIN: 'Administrador',

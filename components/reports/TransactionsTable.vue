@@ -173,12 +173,14 @@ function handleSort(event: DataTableSortEvent): void {
           <Button
             v-if="canEdit"
             icon="pi pi-pencil"
+            aria-label="Editar transação"
             class="p-button-text p-button-sm p-button-rounded"
             @click="emit('edit', data)"
           />
           <Button
             v-if="canDelete"
             icon="pi pi-trash"
+            aria-label="Excluir transação"
             class="p-button-text p-button-sm p-button-rounded p-button-danger"
             @click="emit('delete', data)"
           />

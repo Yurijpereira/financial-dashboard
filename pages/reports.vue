@@ -68,8 +68,8 @@ const filterOptions = ref<{
 
 const filterOptionsLoaded = ref(false)
 
-async function ensureFilterOptions(): Promise<void> {
-  if (filterOptionsLoaded.value) return
+async function ensureFilterOptions(): Promise<boolean> {
+  if (filterOptionsLoaded.value) return true
 
   try {
     const options = await $fetch<{
@@ -78,22 +78,24 @@ async function ensureFilterOptions(): Promise<void> {
     }>('/api/filters/options')
     filterOptions.value = { customers: options.customers, products: options.products }
     filterOptionsLoaded.value = true
+    return true
   } catch {
     toast.error({ detail: 'Falha ao carregar opções de filtro.' })
+    return false
   }
 }
 
 function handleCreateTransaction(): void {
   editingTransaction.value = null
-  ensureFilterOptions().then(() => {
-    showFormDialog.value = true
+  ensureFilterOptions().then((ok) => {
+    if (ok) showFormDialog.value = true
   })
 }
 
 function handleEditTransaction(transaction: ReportTransaction): void {
   editingTransaction.value = transaction
-  ensureFilterOptions().then(() => {
-    showFormDialog.value = true
+  ensureFilterOptions().then((ok) => {
+    if (ok) showFormDialog.value = true
   })
 }
 

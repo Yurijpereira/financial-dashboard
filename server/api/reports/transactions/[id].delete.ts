@@ -1,5 +1,5 @@
 import { prisma } from '@/server/utils/prisma'
-import { requirePermission } from '@/server/utils/rbac'
+import { requirePermission } from '@/server/utils/rbacGuards'
 
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'transactions:delete')

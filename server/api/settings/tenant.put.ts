@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
-import { requirePermission } from '@/server/utils/rbac'
+import { requirePermission } from '@/server/utils/rbacGuards'
 
 const TenantSchema = z.object({
   name: z.string().min(2, 'Nome da empresa deve ter pelo menos 2 caracteres').max(100),

@@ -73,17 +73,12 @@ function resetForm(): void {
 
 function populateFromTransaction(tx: ReportTransaction): void {
   customerId.value = tx.customerId
-  productId.value = ''
+  productId.value = tx.productId
   date.value = tx.date.slice(0, 10)
   amount.value = tx.amount
   status.value = tx.status
   paymentMethod.value = tx.paymentMethod
   description.value = tx.description
-
-  const matchingProduct = props.filterOptions.products.find((p) => p.label === tx.product)
-  if (matchingProduct) {
-    productId.value = matchingProduct.value
-  }
 }
 
 watch(

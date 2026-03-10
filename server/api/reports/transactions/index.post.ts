@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
 import { TransactionStatus, PaymentMethod } from '@prisma/client'
-import { requirePermission } from '@/server/utils/rbac'
+import { requirePermission } from '@/server/utils/rbacGuards'
 import type { ReportTransactionStatus, ReportPaymentMethod } from '@/types/reports'
 import { REPORT_TRANSACTION_STATUSES, REPORT_PAYMENT_METHODS } from '@/types/reports'
 
@@ -30,6 +30,7 @@ const CreateTransactionSchema = z.object({
   paymentMethod: z.enum(REPORT_PAYMENT_METHODS, { message: 'Método de pagamento inválido' }),
   description: z
     .string()
+    .trim()
     .min(1, 'Descrição é obrigatória')
     .max(500, 'Descrição muito longa (máximo 500 caracteres)'),
 })
@@ -79,7 +80,7 @@ export default defineEventHandler(async (event) => {
       amountCents: Math.round(amount * 100),
       status: STATUS_TO_DB[status],
       paymentMethod: PAYMENT_TO_DB[paymentMethod],
-      description: description.trim(),
+      description,
     },
   })
 
