@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
 import type { Prisma } from '@prisma/client'
 import { TransactionStatus, ProductCategory, PaymentMethod } from '@prisma/client'
+import { requireRole } from '@/server/utils/rbac'
 import type {
   ReportPaymentMethod,
   ReportTransactionCategory,
@@ -34,7 +35,7 @@ const optionalAmount = (input: string | undefined): number | null => {
 
 const TransactionsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).default(1),
-  pageSize: z.coerce.number().int().min(1).max(200).default(15),
+  pageSize: z.coerce.number().int().min(1).max(5_000).default(15),
   startDate: z.string().regex(ISO_DATE, 'Data inválida (esperado: YYYY-MM-DD)').optional(),
   endDate: z.string().regex(ISO_DATE, 'Data inválida (esperado: YYYY-MM-DD)').optional(),
   search: z.string().max(200).trim().optional(),
@@ -122,6 +123,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const query = result.data
+
+  // Export-size requests (pageSize > 200) require EDITOR role or above
+  if (query.pageSize > 200) {
+    requireRole(event, 'EDITOR')
+  }
 
   try {
     const where: Prisma.TransactionWhereInput = { tenantId }

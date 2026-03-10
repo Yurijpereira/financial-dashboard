@@ -3,8 +3,9 @@ import { ref, onMounted } from 'vue'
 import Card from 'primevue/card'
 import { useAppToast } from '@/composables/useAppToast'
 
-const { user: sessionUser, fetch: refreshSession } = useUserSession()
+const { fetch: refreshSession } = useUserSession()
 const toast = useAppToast()
+const { isAdmin, roleLabel } = useAuthorization()
 
 const loading = ref(true)
 const loadError = ref(false)
@@ -12,7 +13,6 @@ const profileName = ref('')
 const profileEmail = ref('')
 const tenantName = ref('')
 const tenantSlug = ref('')
-const userRole = ref('')
 const userCreatedAt = ref('')
 const tenantCreatedAt = ref('')
 
@@ -23,8 +23,6 @@ const confirmPassword = ref('')
 const savingProfile = ref(false)
 const savingPassword = ref(false)
 const savingTenant = ref(false)
-
-const isAdmin = computed(() => sessionUser.value?.role === 'ADMIN')
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('pt-BR', {
@@ -42,7 +40,6 @@ async function loadSettings(): Promise<void> {
     }>('/api/settings')
     profileName.value = data.user.name
     profileEmail.value = data.user.email
-    userRole.value = data.user.role
     userCreatedAt.value = data.user.createdAt
     tenantName.value = data.tenant.name
     tenantSlug.value = data.tenant.slug
@@ -185,7 +182,7 @@ onMounted(loadSettings)
 
             <div class="flex items-center gap-4 text-sm text-gray-500">
               <span
-                >Função: <strong class="text-gray-700">{{ userRole }}</strong></span
+                >Função: <strong class="text-gray-700">{{ roleLabel }}</strong></span
               >
               <span
                 >Membro desde:
