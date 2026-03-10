@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useFormatters } from '@/composables/useFormatters'
+import { useTransactionMutations } from '@/composables/useTransactionMutations'
 import FilterBar from '@/components/filters/FilterBar.vue'
 import ReportsAdvancedFilters from '@/components/reports/ReportsAdvancedFilters.vue'
 import TransactionsCategoryChart from '@/components/reports/TransactionsCategoryChart.client.vue'
 import TransactionsTable from '@/components/reports/TransactionsTable.vue'
+import TransactionFormDialog from '@/components/reports/TransactionFormDialog.vue'
+import TransactionDeleteDialog from '@/components/reports/TransactionDeleteDialog.vue'
 import { useReportsFilters } from '@/composables/useReportsFilters'
 import { useReportsTransactionsQuery } from '@/composables/useReportsTransactionsQuery'
 import type {
@@ -14,6 +17,7 @@ import type {
   ReportTransactionCategory,
   ReportsAdvancedFilters as ReportsAdvancedFiltersState,
   ReportsTransactionsResponse,
+  TransactionFormData,
 } from '@/types/reports'
 import { REPORT_CATEGORY_LABELS } from '@/types/reports'
 
@@ -44,7 +48,96 @@ const { data, pending, isFetching, error, queryParams } = useReportsTransactions
 })
 
 const toast = useAppToast()
-const { canExportReports } = useAuthorization()
+const { canExportReports, canCreateTransaction, canUpdateTransaction, canDeleteTransaction } =
+  useAuthorization()
+
+const { createMutation, updateMutation, deleteMutation } = useTransactionMutations()
+
+const showFormDialog = ref(false)
+const showDeleteDialog = ref(false)
+const editingTransaction = ref<ReportTransaction | null>(null)
+const deletingTransaction = ref<ReportTransaction | null>(null)
+
+const filterOptions = ref<{
+  customers: { value: string; label: string }[]
+  products: { value: string; label: string }[]
+}>({
+  customers: [],
+  products: [],
+})
+
+const filterOptionsLoaded = ref(false)
+
+async function ensureFilterOptions(): Promise<boolean> {
+  if (filterOptionsLoaded.value) return true
+
+  try {
+    const options = await $fetch<{
+      customers: { value: string; label: string }[]
+      products: { value: string; label: string }[]
+    }>('/api/filters/options')
+    filterOptions.value = { customers: options.customers, products: options.products }
+    filterOptionsLoaded.value = true
+    return true
+  } catch {
+    toast.error({ detail: 'Falha ao carregar opções de filtro.' })
+    return false
+  }
+}
+
+function handleCreateTransaction(): void {
+  editingTransaction.value = null
+  ensureFilterOptions().then((ok) => {
+    if (ok) showFormDialog.value = true
+  })
+}
+
+function handleEditTransaction(transaction: ReportTransaction): void {
+  editingTransaction.value = transaction
+  ensureFilterOptions().then((ok) => {
+    if (ok) showFormDialog.value = true
+  })
+}
+
+function handleDeleteTransaction(transaction: ReportTransaction): void {
+  deletingTransaction.value = transaction
+  showDeleteDialog.value = true
+}
+
+const isMutating = computed(
+  () =>
+    createMutation.isPending.value ||
+    updateMutation.isPending.value ||
+    deleteMutation.isPending.value,
+)
+
+async function handleFormSave(formData: TransactionFormData): Promise<void> {
+  try {
+    if (editingTransaction.value) {
+      await updateMutation.mutateAsync({ id: editingTransaction.value.id, data: formData })
+      toast.success({ detail: 'Transação atualizada com sucesso.' })
+    } else {
+      await createMutation.mutateAsync(formData)
+      toast.success({ detail: 'Transação criada com sucesso.' })
+    }
+    showFormDialog.value = false
+  } catch (err: unknown) {
+    toast.apiError(err, 'Falha ao salvar transação.')
+  }
+}
+
+async function handleDeleteConfirm(): Promise<void> {
+  if (!deletingTransaction.value) return
+
+  try {
+    await deleteMutation.mutateAsync(deletingTransaction.value.id)
+    toast.success({ detail: 'Transação excluída com sucesso.' })
+    showDeleteDialog.value = false
+    deletingTransaction.value = null
+  } catch (err: unknown) {
+    toast.apiError(err, 'Falha ao excluir transação.')
+  }
+}
 
 const transactions = computed(() => data.value?.items ?? [])
 const total = computed(() => data.value?.total ?? 0)
@@ -261,9 +354,18 @@ async function handleExportPdf(): Promise<void> {
       <template #title>
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold">Transações detalhadas</h2>
-          <span class="text-sm text-gray-500 mr-5">
-            {{ hasActiveAdvancedFilters ? 'Filtros avançados ativos' : 'Visão geral' }}
-          </span>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-500">
+              {{ hasActiveAdvancedFilters ? 'Filtros avançados ativos' : 'Visão geral' }}
+            </span>
+            <Button
+              v-if="canCreateTransaction"
+              label="Nova Transação"
+              icon="pi pi-plus"
+              class="p-button-sm"
+              @click="handleCreateTransaction"
+            />
+          </div>
         </div>
       </template>
 
@@ -286,13 +388,36 @@ async function handleExportPdf(): Promise<void> {
             :page-size="pageSize"
             :sort-field="sortField"
             :sort-order="sortOrder"
+            :can-edit="canUpdateTransaction"
+            :can-delete="canDeleteTransaction"
             @update:page="(value) => (page = value)"
             @update:page-size="(value) => (pageSize = value)"
             @update:sort-field="(value) => (sortField = value)"
             @update:sort-order="(value) => (sortOrder = value)"
+            @edit="handleEditTransaction"
+            @delete="handleDeleteTransaction"
           />
         </ClientOnly>
       </template>
     </Card>
+
+    <ClientOnly>
+      <TransactionFormDialog
+        :visible="showFormDialog"
+        :transaction="editingTransaction"
+        :filter-options="filterOptions"
+        :loading="isMutating"
+        @update:visible="(v) => (showFormDialog = v)"
+        @save="handleFormSave"
+      />
+
+      <TransactionDeleteDialog
+        :visible="showDeleteDialog"
+        :transaction="deletingTransaction"
+        :loading="deleteMutation.isPending.value"
+        @update:visible="(v) => (showDeleteDialog = v)"
+        @confirm="handleDeleteConfirm"
+      />
+    </ClientOnly>
   </section>
 </template>

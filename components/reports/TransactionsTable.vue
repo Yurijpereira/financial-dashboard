@@ -18,10 +18,14 @@ interface Props {
   sortField: ReportSortField
   sortOrder: ReportSortOrder
   loading?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
+  canEdit: false,
+  canDelete: false,
 })
 
 const emit = defineEmits<{
@@ -29,6 +33,8 @@ const emit = defineEmits<{
   'update:pageSize': [value: number]
   'update:sortField': [value: ReportSortField]
   'update:sortOrder': [value: ReportSortOrder]
+  edit: [transaction: ReportTransaction]
+  delete: [transaction: ReportTransaction]
 }>()
 
 const primeSortOrder = computed(() => {
@@ -153,6 +159,31 @@ function handleSort(event: DataTableSortEvent): void {
       <template #body="{ data }: { data: ReportTransaction }">
         <div class="font-medium">
           {{ formatCurrency(data.amount) }}
+        </div>
+      </template>
+    </Column>
+
+    <Column
+      v-if="canEdit || canDelete"
+      header="Ações"
+      style="min-width: 7rem"
+    >
+      <template #body="{ data }: { data: ReportTransaction }">
+        <div class="flex gap-1">
+          <Button
+            v-if="canEdit"
+            icon="pi pi-pencil"
+            aria-label="Editar transação"
+            class="p-button-text p-button-sm p-button-rounded"
+            @click="emit('edit', data)"
+          />
+          <Button
+            v-if="canDelete"
+            icon="pi pi-trash"
+            aria-label="Excluir transação"
+            class="p-button-text p-button-sm p-button-rounded p-button-danger"
+            @click="emit('delete', data)"
+          />
         </div>
       </template>
     </Column>

@@ -11,6 +11,7 @@ const props = withDefaults(
     loading?: boolean
   }>(),
   {
+    variationPercentage: null,
     loading: false,
   },
 )

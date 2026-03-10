@@ -56,7 +56,6 @@ export default defineEventHandler(async (event) => {
 
   const passwordHash = await hashPassword(password)
 
-  let tenant: { id: string }
   let user: { id: string; email: string; name: string; role: string; tenantId: string }
 
   try {
@@ -78,7 +77,6 @@ export default defineEventHandler(async (event) => {
       return { tenant: createdTenant, user: createdUser }
     })
 
-    tenant = result.tenant
     user = result.user
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

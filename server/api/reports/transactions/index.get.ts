@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
 import type { Prisma } from '@prisma/client'
 import { TransactionStatus, ProductCategory, PaymentMethod } from '@prisma/client'
-import { requireRole } from '@/server/utils/rbac'
+import { requirePermission } from '@/server/utils/rbacGuards'
 import type {
   ReportPaymentMethod,
   ReportTransactionCategory,
@@ -137,7 +137,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (query.pageSize > 200) {
-    requireRole(event, 'EDITOR')
+    requirePermission(event, 'reports:bulk-read')
   }
 
   try {
@@ -232,6 +232,7 @@ export default defineEventHandler(async (event) => {
         customerId: transaction.customerId,
         customerName: transaction.customer.name,
         region: transaction.customer.region,
+        productId: transaction.productId,
         product: transaction.product.name,
         category: toLowerCategory(transaction.product.category),
         paymentMethod: toLowerPayment(transaction.paymentMethod),
@@ -293,6 +294,7 @@ export default defineEventHandler(async (event) => {
       customerId: transaction.customerId,
       customerName: transaction.customer.name,
       region: transaction.customer.region,
+      productId: transaction.productId,
       product: transaction.product.name,
       category: toLowerCategory(transaction.product.category),
       paymentMethod: toLowerPayment(transaction.paymentMethod),

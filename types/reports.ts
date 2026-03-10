@@ -41,6 +41,7 @@ export type ReportTransaction = {
   customerId: string
   customerName: string
   region: string
+  productId: string
   product: string
   category: ReportTransactionCategory
   paymentMethod: ReportPaymentMethod
@@ -85,5 +86,28 @@ export type ReportsTransactionsResponse = {
     byCategory: ReportChartMetric<ReportTransactionCategory>[]
     byStatus: ReportChartMetric<ReportTransactionStatus>[]
     trend: ReportTrendPoint[]
+  }
+}
+
+export type TransactionFormData = {
+  customerId: string
+  productId: string
+  date: string
+  amount: number
+  status: ReportTransactionStatus
+  paymentMethod: ReportPaymentMethod
+  description: string
+}
+
+export type TransactionResponse = {
+  transaction: {
+    id: string
+    date: string
+    customerId: string
+    productId: string
+    status: ReportTransactionStatus
+    paymentMethod: ReportPaymentMethod
+    amount: number
+    description: string
   }
 }

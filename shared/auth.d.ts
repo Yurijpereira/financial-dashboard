@@ -1,4 +1,4 @@
-import type { AppRole } from '@/server/utils/rbac'
+import type { AppRole } from '@/shared/rbac'
 
 declare module '#auth-utils' {
   interface User {

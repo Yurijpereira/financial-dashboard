@@ -2,6 +2,7 @@
 import { useSavedViews } from '@/composables/useSavedViews'
 import { useFilters } from '@/composables/useFilters'
 import { formatToDisplayDate } from '@/utils/dateHelpers'
+import type { SavedView } from '@/types/filters'
 
 const { sortedViews, hasViews, createView, deleteView, applyView, hasViewWithName } =
   useSavedViews()
@@ -80,7 +81,7 @@ function formatDate(isoDate: string): string {
   }).format(date)
 }
 
-function getFiltersSummary(view: any): string {
+function getFiltersSummary(view: SavedView): string {
   const parts: string[] = []
 
   parts.push(
