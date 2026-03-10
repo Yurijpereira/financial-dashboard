@@ -87,3 +87,26 @@ export type ReportsTransactionsResponse = {
     trend: ReportTrendPoint[]
   }
 }
+
+export type TransactionFormData = {
+  customerId: string
+  productId: string
+  date: string
+  amount: number
+  status: ReportTransactionStatus
+  paymentMethod: ReportPaymentMethod
+  description: string
+}
+
+export type TransactionResponse = {
+  transaction: {
+    id: string
+    date: string
+    customerId: string
+    productId: string
+    status: string
+    paymentMethod: string
+    amount: number
+    description: string
+  }
+}

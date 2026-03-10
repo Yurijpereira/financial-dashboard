@@ -1,10 +1,5 @@
-import type { AppRole } from '@/server/utils/rbac'
-
-const ROLE_LEVEL: Record<AppRole, number> = {
-  ADMIN: 3,
-  EDITOR: 2,
-  VIEWER: 1,
-}
+import type { AppRole, AppPermission } from '@/server/utils/rbac'
+import { hasMinRole as checkMinRole, hasPermission as checkPermission } from '@/server/utils/rbac'
 
 const ROLE_LABELS: Record<AppRole, string> = {
   ADMIN: 'Administrador',
@@ -20,14 +15,22 @@ export function useAuthorization() {
   const roleLabel = computed(() => ROLE_LABELS[userRole.value])
 
   function hasMinRole(requiredRole: AppRole): boolean {
-    return ROLE_LEVEL[userRole.value] >= ROLE_LEVEL[requiredRole]
+    return checkMinRole(userRole.value, requiredRole)
+  }
+
+  function hasPermissionFor(permission: AppPermission): boolean {
+    return checkPermission(userRole.value, permission)
   }
 
   const isAdmin = computed(() => hasMinRole('ADMIN'))
   const isEditorOrAbove = computed(() => hasMinRole('EDITOR'))
 
-  const canManageTenant = isAdmin
-  const canExportReports = isEditorOrAbove
+  const canManageTenant = computed(() => hasPermissionFor('tenant:manage'))
+  const canExportReports = computed(() => hasPermissionFor('reports:export'))
+  const canBulkReadReports = computed(() => hasPermissionFor('reports:bulk-read'))
+  const canCreateTransaction = computed(() => hasPermissionFor('transactions:create'))
+  const canUpdateTransaction = computed(() => hasPermissionFor('transactions:update'))
+  const canDeleteTransaction = computed(() => hasPermissionFor('transactions:delete'))
 
   return {
     userRole,
@@ -35,7 +38,12 @@ export function useAuthorization() {
     isAdmin,
     isEditorOrAbove,
     hasMinRole,
+    hasPermissionFor,
     canManageTenant,
     canExportReports,
+    canBulkReadReports,
+    canCreateTransaction,
+    canUpdateTransaction,
+    canDeleteTransaction,
   }
 }

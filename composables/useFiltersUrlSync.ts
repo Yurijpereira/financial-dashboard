@@ -63,7 +63,9 @@ function serializeFiltersToQuery(filters: DashboardFilters): Record<string, stri
   return query
 }
 
-function deserializeQueryToFilters(query: Record<string, any>): Partial<DashboardFilters> | null {
+function deserializeQueryToFilters(
+  query: Record<string, unknown>,
+): Partial<DashboardFilters> | null {
   try {
     const filters: Partial<DashboardFilters> = {}
 
@@ -152,7 +154,6 @@ export function useFiltersUrlSync() {
         setRegions,
         setProducts,
         setCompareWithPrevious,
-        filters,
       } = useFilters()
 
       if (urlFilters.dateRange) {
