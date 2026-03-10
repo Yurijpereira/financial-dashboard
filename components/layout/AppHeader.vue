@@ -2,6 +2,7 @@
 import { useQueryClient } from '@tanstack/vue-query'
 
 const { user, clear: clearSession } = useUserSession()
+const { roleLabel } = useAuthorization()
 const queryClient = useQueryClient()
 
 async function refreshDashboardData(): Promise<void> {
@@ -36,6 +37,9 @@ async function handleLogout(): Promise<void> {
       >
         <i class="pi pi-user" />
         <span>{{ user.name }}</span>
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+          {{ roleLabel }}
+        </span>
       </div>
 
       <Button

@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
 import type { Prisma } from '@prisma/client'
 import { TransactionStatus, ProductCategory, PaymentMethod } from '@prisma/client'
+import { requireRole } from '@/server/utils/rbac'
 import type {
   ReportPaymentMethod,
   ReportTransactionCategory,
@@ -34,7 +35,11 @@ const optionalAmount = (input: string | undefined): number | null => {
 
 const TransactionsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).default(1),
-  pageSize: z.coerce.number().int().min(1).max(200).default(15),
+  pageSize: z.coerce.number().int().min(1).max(5_000).default(15),
+  includeMetrics: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
   startDate: z.string().regex(ISO_DATE, 'Data inválida (esperado: YYYY-MM-DD)').optional(),
   endDate: z.string().regex(ISO_DATE, 'Data inválida (esperado: YYYY-MM-DD)').optional(),
   search: z.string().max(200).trim().optional(),
@@ -123,6 +128,18 @@ export default defineEventHandler(async (event) => {
 
   const query = result.data
 
+  if (query.pageSize > 200 && query.includeMetrics) {
+    throw createError({
+      statusCode: 400,
+      message:
+        'Volume de dados muito alto para esta operação. Reduza o número de registros ou desative as métricas.',
+    })
+  }
+
+  if (query.pageSize > 200) {
+    requireRole(event, 'EDITOR')
+  }
+
   try {
     const where: Prisma.TransactionWhereInput = { tenantId }
 
@@ -184,7 +201,6 @@ export default defineEventHandler(async (event) => {
 
     const skip = (query.page - 1) * query.pageSize
 
-    // Trend window: last 14 days within the filter period
     const trendEnd = query.endDate ? new Date(query.endDate + 'T23:59:59.999Z') : new Date()
     const trendWindowStart = new Date(trendEnd)
     trendWindowStart.setDate(trendWindowStart.getDate() - 13)
@@ -196,17 +212,49 @@ export default defineEventHandler(async (event) => {
       date: { gte: effectiveTrendStart, lte: trendEnd },
     }
 
+    const baseQueries = [
+      prisma.transaction.findMany({
+        where,
+        include: { customer: true, product: true },
+        orderBy,
+        skip,
+        take: query.pageSize,
+      }),
+      prisma.transaction.count({ where }),
+    ] as const
+
+    if (!query.includeMetrics) {
+      const [items, total] = await Promise.all(baseQueries)
+
+      const mappedItems: ReportTransaction[] = items.map((transaction) => ({
+        id: transaction.id,
+        date: transaction.date.toISOString(),
+        customerId: transaction.customerId,
+        customerName: transaction.customer.name,
+        region: transaction.customer.region,
+        product: transaction.product.name,
+        category: toLowerCategory(transaction.product.category),
+        paymentMethod: toLowerPayment(transaction.paymentMethod),
+        status: toLowerStatus(transaction.status),
+        amount: transaction.amountCents / 100,
+        description: transaction.description,
+      }))
+
+      const response: ReportsTransactionsResponse = {
+        items: mappedItems,
+        total,
+        page: query.page,
+        pageSize: query.pageSize,
+        summary: { totalAmount: 0, averageTicket: 0, totalTransactions: 0 },
+        metrics: { byCategory: [], byStatus: [], trend: [] },
+      }
+
+      return response
+    }
+
     const [items, total, aggregation, statusGroups, productGroups, trendData, products] =
       await Promise.all([
-        prisma.transaction.findMany({
-          where,
-          include: { customer: true, product: true },
-          orderBy,
-          skip,
-          take: query.pageSize,
-        }),
-
-        prisma.transaction.count({ where }),
+        ...baseQueries,
 
         prisma.transaction.aggregate({
           where,

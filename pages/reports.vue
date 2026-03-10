@@ -44,6 +44,7 @@ const { data, pending, isFetching, error, queryParams } = useReportsTransactions
 })
 
 const toast = useAppToast()
+const { canExportReports } = useAuthorization()
 
 const transactions = computed(() => data.value?.items ?? [])
 const total = computed(() => data.value?.total ?? 0)
@@ -107,6 +108,7 @@ async function fetchTransactionsForExport(): Promise<ReportTransaction[]> {
       ...queryParams.value,
       page: '1',
       pageSize: '5000',
+      includeMetrics: 'false',
     },
   })
 
@@ -191,7 +193,10 @@ async function handleExportPdf(): Promise<void> {
 
         <div class="card-base">
           <p class="text-sm text-gray-500">Exportação</p>
-          <div class="mt-3 flex gap-2">
+          <div
+            v-if="canExportReports"
+            class="mt-3 flex gap-2"
+          >
             <Button
               label="Excel"
               icon="pi pi-file-excel"
@@ -207,6 +212,12 @@ async function handleExportPdf(): Promise<void> {
               @click="handleExportPdf"
             />
           </div>
+          <p
+            v-else
+            class="text-xs text-gray-400 mt-3"
+          >
+            Apenas editores e administradores podem exportar.
+          </p>
         </div>
       </template>
     </div>

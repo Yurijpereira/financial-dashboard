@@ -123,7 +123,7 @@ function buildPdfDocument(pageContents: string[]): string {
 export function exportTransactionsToExcel(transactions: ReportTransaction[]): void {
   const rows = transactions
     .map((transaction) => {
-      return [
+      const cells = [
         buildExcelCell(formatDate(transaction.date)),
         buildExcelCell(transaction.id),
         buildExcelCell(transaction.customerName),
@@ -133,8 +133,10 @@ export function exportTransactionsToExcel(transactions: ReportTransaction[]): vo
         buildExcelCell(formatCurrency(transaction.amount)),
         buildExcelCell(transaction.description),
       ].join('')
+
+      return `<tr>${cells}</tr>`
     })
-    .join('')
+    .join('\n')
 
   const html = `
     <html>
