@@ -108,6 +108,7 @@ async function fetchTransactionsForExport(): Promise<ReportTransaction[]> {
       ...queryParams.value,
       page: '1',
       pageSize: '5000',
+      includeMetrics: 'false',
     },
   })
 

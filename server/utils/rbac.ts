@@ -9,7 +9,7 @@ const ROLE_LEVEL: Record<AppRole, number> = {
 }
 
 export function isValidRole(role: string): role is AppRole {
-  return role in ROLE_LEVEL
+  return Object.hasOwn(ROLE_LEVEL, role)
 }
 
 export function hasMinRole(userRole: AppRole, requiredRole: AppRole): boolean {
