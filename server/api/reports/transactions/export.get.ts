@@ -24,13 +24,21 @@ const ExportQuerySchema = TransactionFilterSchema.extend({
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
 
-// ─── CSV helpers ──────────────────────────────────────────────────
+const FORMULA_TRIGGER_RE = /^[=+\-@]/
 
 function escapeCsvField(value: string): string {
-  if (value.includes('"') || value.includes(';') || value.includes('\n') || value.includes('\r')) {
-    return `"${value.replace(/"/g, '""')}"`
+  const safe = FORMULA_TRIGGER_RE.test(value) ? '\t' + value : value
+
+  if (
+    safe.includes('"') ||
+    safe.includes(';') ||
+    safe.includes('\n') ||
+    safe.includes('\r') ||
+    safe.includes('\t')
+  ) {
+    return `"${safe.replace(/"/g, '""')}"`
   }
-  return value
+  return safe
 }
 
 function formatDateBR(isoDate: string): string {
@@ -87,8 +95,6 @@ function buildCsvContent(transactions: ReportTransaction[]): string {
 
   return [header, ...rows].join('\r\n')
 }
-
-// ─── PDF helpers (pure ASCII, no DOM dependency) ──────────────────
 
 function escapePdfStr(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
@@ -181,8 +187,6 @@ function buildPdfBuffer(transactions: ReportTransaction[]): Buffer {
 
   return Buffer.from(buildPdfDocument(pages), 'utf-8')
 }
-
-// ─── Handler ──────────────────────────────────────────────────────
 
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'reports:export')
