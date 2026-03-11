@@ -1,117 +1,36 @@
 import { z } from 'zod'
 import { prisma } from '@/server/utils/prisma'
-import type { Prisma } from '@prisma/client'
-import { TransactionStatus, ProductCategory, PaymentMethod } from '@prisma/client'
+import type { Prisma, ProductCategory, TransactionStatus } from '@prisma/client'
 import { requirePermission } from '@/server/utils/rbacGuards'
+import {
+  TransactionFilterSchema,
+  buildTransactionWhere,
+  buildTransactionOrderBy,
+  toLowerStatus,
+  toLowerCategory,
+  toLowerPayment,
+  CATEGORY_TO_DB,
+  STATUS_TO_DB,
+} from '@/server/utils/reportFilters'
 import type {
-  ReportPaymentMethod,
-  ReportTransactionCategory,
-  ReportTransactionStatus,
   ReportChartMetric,
   ReportTransaction,
+  ReportTransactionCategory,
+  ReportTransactionStatus,
   ReportsTransactionsResponse,
 } from '@/types/reports'
-import {
-  REPORT_PAYMENT_METHODS,
-  REPORT_TRANSACTION_CATEGORIES,
-  REPORT_TRANSACTION_STATUSES,
-} from '@/types/reports'
+import { REPORT_TRANSACTION_CATEGORIES, REPORT_TRANSACTION_STATUSES } from '@/types/reports'
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
-
-const commaSplit = (input: string | undefined): string[] =>
-  input
-    ? input
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean)
-    : []
-
-const optionalAmount = (input: string | undefined): number | null => {
-  if (!input) return null
-  const parsed = Number(input)
-  return Number.isFinite(parsed) ? parsed : null
-}
-
-const TransactionsQuerySchema = z.object({
+const TransactionsQuerySchema = TransactionFilterSchema.extend({
   page: z.coerce.number().int().min(1).max(10_000).default(1),
   pageSize: z.coerce.number().int().min(1).max(5_000).default(15),
   includeMetrics: z
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
-  startDate: z.string().regex(ISO_DATE, 'Data inválida (esperado: YYYY-MM-DD)').optional(),
-  endDate: z.string().regex(ISO_DATE, 'Data inválida (esperado: YYYY-MM-DD)').optional(),
-  search: z.string().max(200).trim().optional(),
-  customers: z.string().max(1_000).optional().transform(commaSplit),
-  regions: z.string().max(1_000).optional().transform(commaSplit),
-  products: z.string().max(1_000).optional().transform(commaSplit),
-  statuses: z
-    .string()
-    .max(500)
-    .optional()
-    .transform((raw) =>
-      commaSplit(raw).filter((status): status is ReportTransactionStatus =>
-        (REPORT_TRANSACTION_STATUSES as readonly string[]).includes(status),
-      ),
-    ),
-  categories: z
-    .string()
-    .max(500)
-    .optional()
-    .transform((raw) =>
-      commaSplit(raw).filter((category): category is ReportTransactionCategory =>
-        (REPORT_TRANSACTION_CATEGORIES as readonly string[]).includes(category),
-      ),
-    ),
-  paymentMethods: z
-    .string()
-    .max(500)
-    .optional()
-    .transform((raw) =>
-      commaSplit(raw).filter((method): method is ReportPaymentMethod =>
-        (REPORT_PAYMENT_METHODS as readonly string[]).includes(method),
-      ),
-    ),
-  minAmount: z.string().optional().transform(optionalAmount),
-  maxAmount: z.string().optional().transform(optionalAmount),
   sortField: z.enum(['date', 'amount', 'customerName', 'status']).default('date'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
-
-const STATUS_TO_DB: Record<ReportTransactionStatus, TransactionStatus> = {
-  paid: TransactionStatus.PAID,
-  pending: TransactionStatus.PENDING,
-  failed: TransactionStatus.FAILED,
-  refunded: TransactionStatus.REFUNDED,
-}
-
-const CATEGORY_TO_DB: Record<ReportTransactionCategory, ProductCategory> = {
-  subscription: ProductCategory.SUBSCRIPTION,
-  service: ProductCategory.SERVICE,
-  hardware: ProductCategory.HARDWARE,
-  support: ProductCategory.SUPPORT,
-  training: ProductCategory.TRAINING,
-}
-
-const PAYMENT_TO_DB: Record<ReportPaymentMethod, PaymentMethod> = {
-  credit_card: PaymentMethod.CREDIT_CARD,
-  pix: PaymentMethod.PIX,
-  bank_slip: PaymentMethod.BANK_SLIP,
-  bank_transfer: PaymentMethod.BANK_TRANSFER,
-}
-
-function toLowerStatus(status: TransactionStatus): ReportTransactionStatus {
-  return status.toLowerCase() as ReportTransactionStatus
-}
-
-function toLowerCategory(category: ProductCategory): ReportTransactionCategory {
-  return category.toLowerCase() as ReportTransactionCategory
-}
-
-function toLowerPayment(payment: PaymentMethod): ReportPaymentMethod {
-  return payment.toLowerCase() as ReportPaymentMethod
-}
 
 export default defineEventHandler(async (event) => {
   const tenantId = event.context.tenantId as string
@@ -141,64 +60,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const where: Prisma.TransactionWhereInput = { tenantId }
-
-    if (query.startDate || query.endDate) {
-      where.date = {}
-      if (query.startDate) where.date.gte = new Date(query.startDate + 'T00:00:00.000Z')
-      if (query.endDate) where.date.lte = new Date(query.endDate + 'T23:59:59.999Z')
-    }
-
-    if (query.customers.length > 0) where.customerId = { in: query.customers }
-
-    const customerRelation: Prisma.CustomerWhereInput = {}
-    if (query.regions.length > 0) customerRelation.region = { in: query.regions }
-    if (Object.keys(customerRelation).length > 0) where.customer = customerRelation
-
-    if (query.products.length > 0) where.productId = { in: query.products }
-
-    if (query.statuses.length > 0) {
-      where.status = { in: query.statuses.map((status) => STATUS_TO_DB[status]) }
-    }
-
-    if (query.categories.length > 0) {
-      const dbCategories = query.categories.map((category) => CATEGORY_TO_DB[category])
-      where.product = { is: { category: { in: dbCategories } } }
-    }
-
-    if (query.paymentMethods.length > 0) {
-      where.paymentMethod = { in: query.paymentMethods.map((method) => PAYMENT_TO_DB[method]) }
-    }
-
-    if (query.minAmount !== null || query.maxAmount !== null) {
-      where.amountCents = {}
-      if (query.minAmount !== null) where.amountCents.gte = Math.round(query.minAmount * 100)
-      if (query.maxAmount !== null) where.amountCents.lte = Math.round(query.maxAmount * 100)
-    }
-
-    if (query.search) {
-      const search = query.search.toLowerCase()
-      where.OR = [
-        { id: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { customer: { name: { contains: search, mode: 'insensitive' } } },
-        { product: { name: { contains: search, mode: 'insensitive' } } },
-      ]
-    }
-
-    type OrderByInput = Prisma.TransactionOrderByWithRelationInput
-    let orderBy: OrderByInput
-
-    if (query.sortField === 'customerName') {
-      orderBy = { customer: { name: query.sortOrder } }
-    } else if (query.sortField === 'amount') {
-      orderBy = { amountCents: query.sortOrder }
-    } else if (query.sortField === 'status') {
-      orderBy = { status: query.sortOrder }
-    } else {
-      orderBy = { date: query.sortOrder }
-    }
-
+    const where = buildTransactionWhere(query, tenantId)
+    const orderBy = buildTransactionOrderBy(query.sortField, query.sortOrder)
     const skip = (query.page - 1) * query.pageSize
 
     const trendEnd = query.endDate ? new Date(query.endDate + 'T23:59:59.999Z') : new Date()
