@@ -16,7 +16,6 @@ import type {
   ReportTransaction,
   ReportTransactionCategory,
   ReportsAdvancedFilters as ReportsAdvancedFiltersState,
-  ReportsTransactionsResponse,
   TransactionFormData,
 } from '@/types/reports'
 import { REPORT_CATEGORY_LABELS } from '@/types/reports'
@@ -195,36 +194,14 @@ function clearCategoryDrilldown(): void {
   updateAdvancedFilters({ categories: [] })
 }
 
-async function fetchTransactionsForExport(): Promise<ReportTransaction[]> {
-  const response = await $fetch<ReportsTransactionsResponse>('/api/reports/transactions', {
-    query: {
-      ...queryParams.value,
-      page: '1',
-      pageSize: '5000',
-      includeMetrics: 'false',
-    },
-  })
-
-  return response.items
-}
-
-async function exportData(format: 'excel' | 'pdf'): Promise<void> {
+async function exportData(format: 'csv' | 'pdf'): Promise<void> {
   if (isExporting.value || pending.value) return
   isExporting.value = true
 
   try {
-    const exportItems = await fetchTransactionsForExport()
-    if (exportItems.length === 0) return
-
-    const exportTools = await import('@/utils/reportsExport.client')
-    if (format === 'excel') {
-      exportTools.exportTransactionsToExcel(exportItems)
-      toast.success({ detail: 'Exportação Excel concluída.' })
-      return
-    }
-
-    exportTools.exportTransactionsToPdf(exportItems)
-    toast.success({ detail: 'Exportação PDF concluída.' })
+    const { downloadExport } = await import('@/utils/reportsExport.client')
+    await downloadExport(queryParams.value, format)
+    toast.success({ detail: `Exportação ${format === 'csv' ? 'CSV' : 'PDF'} concluída.` })
   } catch (err: unknown) {
     toast.apiError(err, 'Falha ao exportar dados.')
   } finally {
@@ -232,8 +209,8 @@ async function exportData(format: 'excel' | 'pdf'): Promise<void> {
   }
 }
 
-async function handleExportExcel(): Promise<void> {
-  await exportData('excel')
+async function handleExportCsv(): Promise<void> {
+  await exportData('csv')
 }
 
 async function handleExportPdf(): Promise<void> {
@@ -291,11 +268,11 @@ async function handleExportPdf(): Promise<void> {
             class="mt-3 flex gap-2"
           >
             <Button
-              label="Excel"
-              icon="pi pi-file-excel"
+              label="CSV"
+              icon="pi pi-file"
               class="p-button-sm p-button-outlined"
               :disabled="pending || isExporting || total === 0"
-              @click="handleExportExcel"
+              @click="handleExportCsv"
             />
             <Button
               label="PDF"
