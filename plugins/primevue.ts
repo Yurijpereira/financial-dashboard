@@ -13,6 +13,7 @@ import MultiSelect from 'primevue/multiselect'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
 import Checkbox from 'primevue/checkbox'
+import ToggleSwitch from 'primevue/toggleswitch'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
 
@@ -62,5 +63,6 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('Dialog', Dialog)
   nuxtApp.vueApp.component('Message', Message)
   nuxtApp.vueApp.component('Checkbox', Checkbox)
+  nuxtApp.vueApp.component('ToggleSwitch', ToggleSwitch)
   nuxtApp.vueApp.component('Toast', Toast)
 })
