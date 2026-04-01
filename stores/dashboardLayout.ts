@@ -28,14 +28,21 @@ function isValidLayoutConfig(value: unknown): value is DashboardLayoutConfig {
   return Array.isArray(config.widgets) && config.widgets.every(isValidWidgetConfig)
 }
 
-function normalizeLayout(stored: DashboardLayoutConfig): DashboardLayoutConfig {
-  const storedIds = new Set(stored.widgets.map((w) => w.id))
-  const normalized: DashboardWidgetConfig[] = stored.widgets.filter((w) =>
-    VALID_WIDGET_IDS.has(w.id),
-  )
+export function normalizeLayout(stored: DashboardLayoutConfig): DashboardLayoutConfig {
+  const normalizedWidgetIds = new Set<DashboardWidgetId>()
+  const normalized: DashboardWidgetConfig[] = []
+
+  for (const storedWidget of stored.widgets) {
+    if (!VALID_WIDGET_IDS.has(storedWidget.id) || normalizedWidgetIds.has(storedWidget.id)) {
+      continue
+    }
+
+    normalizedWidgetIds.add(storedWidget.id)
+    normalized.push(storedWidget)
+  }
 
   for (const id of ALL_WIDGET_IDS) {
-    if (!storedIds.has(id)) {
+    if (!normalizedWidgetIds.has(id)) {
       normalized.push({ id, visible: true })
     }
   }
@@ -83,10 +90,10 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
 
   const orderedWidgets = computed(() => layout.value.widgets)
 
-  function toggleWidget(id: DashboardWidgetId): void {
+  function setWidgetVisibility(id: DashboardWidgetId, visible: boolean): void {
     const widget = layout.value.widgets.find((w) => w.id === id)
-    if (widget) {
-      widget.visible = !widget.visible
+    if (widget && widget.visible !== visible) {
+      widget.visible = visible
     }
   }
 
@@ -107,7 +114,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
     layout,
     visibleWidgets,
     orderedWidgets,
-    toggleWidget,
+    setWidgetVisibility,
     moveWidget,
     resetLayout,
   }

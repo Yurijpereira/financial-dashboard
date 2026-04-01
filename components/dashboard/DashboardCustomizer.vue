@@ -4,7 +4,7 @@ import { useDashboardLayout } from '@/composables/useDashboardLayout'
 import { DASHBOARD_WIDGETS_META } from '@/types/dashboard'
 import type { DashboardWidgetId } from '@/types/dashboard'
 
-const { orderedWidgets, toggleWidget, moveWidget, resetLayout } = useDashboardLayout()
+const { orderedWidgets, setWidgetVisibility, moveWidget, resetLayout } = useDashboardLayout()
 
 const visible = defineModel<boolean>('visible', { default: false })
 
@@ -118,7 +118,7 @@ function handleMoveDown(index: number) {
         <ToggleSwitch
           :model-value="widget.visible"
           :aria-label="`Exibir ${getWidgetMeta(widget.id).label}`"
-          @update:model-value="toggleWidget(widget.id)"
+          @update:model-value="setWidgetVisibility(widget.id, $event)"
         />
       </li>
     </ul>

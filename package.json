@@ -15,6 +15,9 @@
     "db:reset": "prisma migrate reset",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test": "vitest --ui --open --config vitest.config.ts",
+    "test:run": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

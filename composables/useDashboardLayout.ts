@@ -9,7 +9,7 @@ export function useDashboardLayout() {
     layout,
     visibleWidgets,
     orderedWidgets,
-    toggleWidget: store.toggleWidget,
+    setWidgetVisibility: store.setWidgetVisibility,
     moveWidget: store.moveWidget,
     resetLayout: store.resetLayout,
   }
